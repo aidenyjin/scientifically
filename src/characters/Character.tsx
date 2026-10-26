@@ -6,6 +6,7 @@ import { ART } from "./bodies";
 import { CAST } from "./cast";
 import type { CosmeticId } from "./cosmetics";
 import { CosmeticLayer, resolveOutfit } from "./CosmeticLayer";
+import { useOutfit } from "./OutfitContext";
 import { Arms, Blush, Brows, Extras, Eyes, GroundShadow, Mouth } from "./parts";
 import { faceFor, phase } from "./rig";
 import { CharacterStyles } from "./styles";
@@ -94,7 +95,8 @@ export function Character({
   const uid = `ch${useId().replace(/[^a-zA-Z0-9_-]/g, "")}`;
   const face = faceFor(expression, art.overrides);
   const blink = useBlink(animated && face.eye === "open");
-  const worn = resolveOutfit(outfit);
+  const saved = useOutfit(id);
+  const worn = resolveOutfit(outfit ?? saved);
   const [loop, shadowLoop] = animated ? loopFor(expression, art.idle ?? "bob") : [undefined, undefined];
   // Desync idle loops between characters on one screen. A celebration starts
   // from its anticipation squash instead (just a small stagger).

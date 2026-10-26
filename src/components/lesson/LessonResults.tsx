@@ -3,6 +3,7 @@
 import { useReducedMotion } from "motion/react";
 import { useEffect, useState } from "react";
 import { Character } from "@/characters/Character";
+import { reactionFor } from "@/characters/reactions";
 import { BoltIcon, ChestIcon, FlameIcon, GemIcon, TrophyIcon } from "@/components/icons";
 import { Button } from "@/components/ui/Button";
 import { useCountUp } from "@/components/ui/useCountUp";
@@ -86,6 +87,7 @@ function ResultsStage({
 }) {
   const title =
     stats.mode === "practice" ? "Practice complete!" : stats.perfect ? "Perfect lesson!" : "Lesson complete!";
+  const line = reactionFor(stats.perfect ? "perfect" : "lessonComplete", "lumi", stats.firstTryCorrect + stats.total).line;
   return (
     <div className="flex w-full max-w-[640px] flex-col items-center text-center">
       <div className="animate-pop-in">
@@ -94,6 +96,7 @@ function ResultsStage({
       <h1 className="mt-4 animate-rise-in font-display text-4xl font-semibold text-xp-dark [animation-delay:80ms]">
         {title}
       </h1>
+      {line && <p className="mt-2 animate-rise-in text-lg font-semibold text-ink-soft [animation-delay:120ms]">“{line}”</p>}
       {preview && <p className="mt-2 text-sm font-semibold text-muted">Preview — nothing was saved.</p>}
 
       <div className="mt-9 grid w-full grid-cols-3 gap-4">

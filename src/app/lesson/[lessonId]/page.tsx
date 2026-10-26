@@ -1,4 +1,5 @@
 import { notFound, redirect } from "next/navigation";
+import { OutfitProvider, type Outfits } from "@/characters/OutfitContext";
 import { LessonPlayer } from "@/components/lesson/LessonPlayer";
 import { ClientSettings } from "@/components/shell/ClientSettings";
 import type { Exercise } from "@/content/registry";
@@ -21,7 +22,13 @@ export default async function LessonPage({ params }: { params: Promise<{ lessonI
   const player = await syncPlayer(user, t);
   const settings = parseSettings(user.settings);
 
-  let session: { packId: string; title: string; mode: LessonMode; exercises: Exercise[]; exitHref: string };
+  let session: {
+    packId: string;
+    title: string;
+    mode: LessonMode;
+    exercises: Exercise[];
+    exitHref: string;
+  };
   if ((PRACTICE_LESSON_IDS as readonly string[]).includes(lessonId)) {
     const practice = await buildPractice(user, lessonId as PracticeKind, t);
     if (!practice) redirect("/practice");
@@ -49,7 +56,7 @@ export default async function LessonPage({ params }: { params: Promise<{ lessonI
   }
 
   return (
-    <>
+    <OutfitProvider outfits={settings.outfit as Outfits}>
       <ClientSettings sound={settings.sound} reduceMotion={settings.reduceMotion} />
       <LessonPlayer
         packId={session.packId}
@@ -64,6 +71,6 @@ export default async function LessonPage({ params }: { params: Promise<{ lessonI
         onAbandon={abandonLessonAction}
         onRefillHearts={refillHeartsAction}
       />
-    </>
+    </OutfitProvider>
   );
 }

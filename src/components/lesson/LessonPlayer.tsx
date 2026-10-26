@@ -56,6 +56,12 @@ export function LessonPlayer(props: LessonPlayerProps) {
   const completedRef = useRef(false);
 
   useEffect(() => {
+    if (process.env.NODE_ENV === "development" || process.env.NEXT_PUBLIC_E2E === "1") {
+      void import("@/engine/testHooks").then((m) => m.install());
+    }
+  }, []);
+
+  useEffect(() => {
     useLessonStore.getState().start(exercises, { mode, hearts: initialHearts });
     completedRef.current = false;
     return () => useLessonStore.getState().reset();
