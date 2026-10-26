@@ -5,15 +5,14 @@ export function FlameIcon({ size = 24, className, muted }: IconProps) {
   return (
     <svg viewBox="0 0 24 24" width={size} height={size} className={className} aria-hidden>
       <path
-        d="M12 2.5c.6 3.2 4.9 5.6 4.9 10.6A4.9 4.9 0 0 1 12 18a4.9 4.9 0 0 1-4.9-4.9c0-1.9.8-3.3 1.7-4.4.2 1.6 1 2.6 2 2.9C10.4 8.4 11 5 12 2.5Z"
-        transform="translate(0 2.5)"
+        d="M12 1.8c1 3.2 3.4 5 5 7.3 1.3 1.8 2.1 3.8 2.1 6A7.1 7.1 0 0 1 12 22.2a7.1 7.1 0 0 1-7.1-6.9c0-2.4 1-4.4 2.5-6 .3 1.7 1.2 2.9 2.4 3.4-.4-3.6.8-7.7 2.2-10.9Z"
         fill={muted ? "var(--line-strong)" : "var(--streak)"}
       />
       <path
-        d="M12 12.6c.3 1.4 2.2 2.4 2.2 4.4a2.2 2.2 0 1 1-4.4 0c0-.9.4-1.5.8-2 .1.7.5 1.1.9 1.3-.1-1.4.2-2.6.5-3.7Z"
-        transform="translate(0 2.5)"
+        d="M12 11.6c.7 1.8 2.9 3 2.9 5.6a2.9 2.9 0 0 1-5.8 0c0-1.4.6-2.4 1.2-3.1.2.9.7 1.5 1.2 1.7-.1-1.5.1-2.9.5-4.2Z"
         fill={muted ? "var(--surface)" : "#ffd23f"}
       />
+      {!muted && <ellipse cx="9.2" cy="11.8" rx="1" ry="2.2" transform="rotate(20 9.2 11.8)" fill="white" opacity="0.35" />}
     </svg>
   );
 }

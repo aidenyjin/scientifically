@@ -56,7 +56,7 @@ export function CoursePath({ units, currentLessonId }: { units: PathUnit[]; curr
             </button>
           </header>
 
-          <ol className="relative mt-12 flex flex-col items-center gap-7">
+          <ol className="relative mt-14 flex flex-col items-center gap-12">
             {unit.lessons.map((lesson, i) => {
               const offset = WAVE[i % WAVE.length];
               const mascotHere = i === 2 && unit.lessons.length > 3;

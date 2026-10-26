@@ -52,7 +52,7 @@ export function PathNode({
   return (
     <div ref={wrapRef} className="relative flex flex-col items-center" data-current={current || undefined}>
       {current && !open && (
-        <div className="absolute -top-12 z-10 animate-[bob_2.4s_ease-in-out_infinite]">
+        <div className="absolute -top-[46px] z-10 animate-[bob_2.4s_ease-in-out_infinite]">
           <div
             className="relative rounded-xl border-2 border-line bg-surface px-3 py-1.5 font-display text-sm font-bold tracking-wide uppercase shadow-card"
             style={{ color }}

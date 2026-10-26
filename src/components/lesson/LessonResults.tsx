@@ -187,11 +187,13 @@ function StreakStage({ summary }: { summary: CompletionSummary }) {
   return (
     <div className="flex flex-col items-center text-center">
       <div className="relative animate-pop-in">
-        <FlameIcon size={180} />
+        <div className="origin-bottom animate-[flicker_1.8s_ease-in-out_infinite]">
+          <FlameIcon size={168} />
+        </div>
       </div>
-      <p className="-mt-4 font-display text-[88px] leading-none font-bold text-streak tabular-nums">{shown}</p>
+      <p className="mt-1 font-display text-[88px] leading-none font-bold text-streak tabular-nums">{shown}</p>
       <h1 className="mt-2 font-display text-3xl font-semibold text-streak">day streak!</h1>
-      <p className="mt-3 max-w-sm text-ink-soft">
+      <p className="mt-3 max-w-sm text-balance text-ink-soft">
         {summary.streak.freezeUsed
           ? "A streak freeze kept your streak safe. Welcome back!"
           : days === 1

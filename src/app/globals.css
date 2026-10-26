@@ -241,6 +241,19 @@ body {
   }
 }
 
+@keyframes flicker {
+  0%,
+  100% {
+    transform: scale(1, 1);
+  }
+  30% {
+    transform: scale(0.98, 1.04);
+  }
+  60% {
+    transform: scale(1.02, 0.98);
+  }
+}
+
 @keyframes pulse-ring {
   0% {
     transform: scale(1);
