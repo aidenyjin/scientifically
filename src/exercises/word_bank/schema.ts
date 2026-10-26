@@ -12,6 +12,10 @@ export const wordBankSchema = exerciseBaseSchema
   .refine((ex) => countBlanks(ex.text) === ex.answers.length, {
     message: "number of ___ in text must equal answers.length",
     path: ["answers"],
+  })
+  .refine((ex) => ex.answers.length + ex.distractors.length <= 9, {
+    message: "at most 9 tiles in total (answers + distractors), so each has a 1–9 key",
+    path: ["distractors"],
   });
 
 export type WordBank = z.infer<typeof wordBankSchema>;

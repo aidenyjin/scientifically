@@ -94,7 +94,11 @@ export function FeedbackFooter({
                     Correct answer: <RichText text={grade.correctAnswerText} className="font-semibold" />
                   </p>
                 )}
-                {grade?.feedback && <p className="mt-1 text-[15px] font-semibold">{grade.feedback}</p>}
+                {grade?.feedback && (
+                  <p className="mt-1 text-[15px] font-semibold">
+                    <RichText text={grade.feedback} />
+                  </p>
+                )}
                 <p className="mt-1.5 max-w-[60ch] text-[15px] leading-snug font-medium opacity-90">
                   <RichText text={explanation} />
                 </p>

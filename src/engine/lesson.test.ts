@@ -85,6 +85,7 @@ describe("lesson engine", () => {
     s = refillHearts(s, 5);
     expect(s.status).toBe("answering");
     expect(s.hearts).toBe(5);
+    expect(s.heartsLost).toBe(0);
     expect(currentExercise(s)?.id).toBe(tf.id);
   });
 

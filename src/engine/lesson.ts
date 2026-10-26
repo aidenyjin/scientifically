@@ -26,6 +26,7 @@ export interface LessonState {
   status: LessonStatus;
   /** null = unlimited (practice lessons, or unlimited-hearts boost). */
   hearts: number | null;
+  /** Hearts lost since the wallet was last synced (start of lesson, or a gem refill). */
   heartsLost: number;
   response: unknown;
   lastGrade: GradeResult | null;
@@ -146,8 +147,15 @@ export function advance(state: LessonState): LessonState {
 
 /** Restore hearts after a gem refill on the out-of-hearts screen, and carry on. */
 export function refillHearts(state: LessonState, hearts: number): LessonState {
-  if (!state.outOfHearts && state.status !== "failed") return { ...state, hearts };
-  const resumed: LessonState = { ...state, hearts, outOfHearts: false, status: state.status === "failed" ? "incorrect" : state.status };
+  if (!state.outOfHearts && state.status !== "failed") return { ...state, hearts, heartsLost: 0 };
+  // The wallet now holds `hearts`, so losses before the refill are already settled.
+  const resumed: LessonState = {
+    ...state,
+    hearts,
+    heartsLost: 0,
+    outOfHearts: false,
+    status: state.status === "failed" ? "incorrect" : state.status,
+  };
   return advance(resumed);
 }
 
