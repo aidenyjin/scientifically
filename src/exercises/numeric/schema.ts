@@ -4,7 +4,12 @@ import { exerciseBaseSchema } from "@/content/schema/exercise-base";
 export const toleranceSchema = z
   .object({
     abs: z.number().min(0).optional().describe("Absolute tolerance, in the answer's unit"),
-    rel: z.number().min(0).max(0.5).optional().describe("Relative tolerance as a fraction, e.g. 0.02 = ±2%"),
+    rel: z
+      .number()
+      .min(0)
+      .max(0.5)
+      .optional()
+      .describe("Relative tolerance as a fraction, e.g. 0.02 = ±2%"),
   })
   .refine((t) => t.abs !== undefined || t.rel !== undefined, "give abs and/or rel tolerance");
 
@@ -23,7 +28,12 @@ export const numericSchema = exerciseBaseSchema
       ),
     computation: z
       .object({
-        expr: z.string().describe("mathjs expression that computes the answer, e.g. 'm * a'"),
+        expr: z
+          .string()
+          .max(500)
+          .describe(
+            "Arithmetic that computes the answer from vars, e.g. 'm * a' or '2 * pi * sqrt(L / g)'. Allowed: numbers (1e-3), + - * / ^, parentheses, var names, pi, e, sqrt, abs, sin, cos, tan (radians), log10, ln, exp, min, max. Always write * explicitly.",
+          ),
         vars: z.record(z.string(), z.number()),
       })
       .optional()
