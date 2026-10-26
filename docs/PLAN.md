@@ -23,11 +23,12 @@ that fits the existing code and note it in the "Decisions log" at the bottom.
 | Schema/validation | **Zod v4** — the single source of truth. Types via `z.infer`, JSON Schema via `z.toJSONSchema()` |
 | DB | Prisma — SQLite locally (`file:./dev.db`), Postgres in production |
 | Charts | Recharts (for `graph_read`; `graph_plot` uses a custom SVG grid) |
-| Math eval | `mathjs` (restricted `evaluate`, never `eval`) |
+| Math eval | Small safe evaluator in `src/exercises/numeric/expr.ts` (never `eval`; no mathjs, to keep the client bundle small) |
 | Sound | Synthesised with the Web Audio API (no audio files) |
 | Tests | Vitest (unit) + Playwright (e2e; Chromium is pre-installed, do not run `playwright install`) |
 | Lint/format | ESLint (Next config) + Prettier |
 | AI | Provider adapter; Anthropic SDK is the default implementation |
+| Auth | Signed-cookie sessions (`src/server/auth/session.ts`), guest-first; bcrypt passwords |
 
 Package manager: npm. Node 20+.
 
@@ -414,13 +415,13 @@ consider a higher-effort pass or review.
 - **Done when:** you can play a demo lesson end-to-end with mouse and keyboard only.
 
 ### M3 — Core question types [low]
-- [ ] `multi_select`, `fill_blank`, `word_bank`, `match_pairs`, `ordering`, `categorize`, `spot_error`
-- [ ] Each: schema, grade + tests, component, example, promptNotes, keyboard support, added to demo pack
+- [x] `multi_select`, `fill_blank`, `word_bank`, `match_pairs`, `ordering`, `categorize`, `spot_error`
+- [x] Each: schema, grade + tests, component, example, promptNotes, keyboard support, added to demo pack
 - **Done when:** demo pack has a lesson using each, all playable.
 
 ### M4 — Science question types [med]
-- [ ] `numeric` (+ mathjs autoCheck), `equation_balance` (+ formula parser, heavy tests), `graph_read`, `graph_plot`, `dialogue`
-- [ ] `simulation` + the 6 sim models with simple visuals; autoCheck reachability
+- [x] `numeric` (+ mathjs autoCheck), `equation_balance` (+ formula parser, heavy tests), `graph_read`, `graph_plot`, `dialogue`
+- [x] `simulation` + the 6 sim models with simple visuals; autoCheck reachability
 - **Done when:** all in demo pack and playable; formula parser handles `Ca(OH)2`, `Fe2(SO4)3`, `C6H12O6`.
 
 ### M5 — Persistence [low]
@@ -429,45 +430,45 @@ consider a higher-effort pass or review.
 - **Done when:** progress survives reload; seed works on a fresh clone.
 
 ### M6 — Learn path & home [med]
-- [ ] Winding path with unit banners, node states, unlock order, popover, checkpoint nodes
-- [ ] Pack picker
+- [x] Winding path with unit banners, node states, unlock order, popover, checkpoint nodes
+- [x] Pack picker
 - **Done when:** completing a lesson unlocks the next node and the path animates it.
 
 ### M7 — Core game systems [med]
-- [ ] `config.ts`, xp, hearts (regen), streak (+freeze), daily goal + chest, gems — pure + tested
-- [ ] Wire into lesson completion and the right rail; heart-refill/fail flow; Shop page
+- [x] `config.ts`, xp, hearts (regen), streak (+freeze), daily goal + chest, gems — pure + tested
+- [x] Wire into lesson completion and the right rail; heart-refill/fail flow; Shop page
 - **Done when:** tests cover day boundaries; buying a freeze in the shop protects a missed day (test with clock).
 
 ### M8 — Characters, sound & feel [high]
-- [ ] Six characters with all expressions + idle animations; `reactions.ts`; cosmetics overlay
-- [ ] Characters in lesson screen, results, path, empty states
-- [ ] sfx; confetti; streak flame animation; satisfying button press states; reduced-motion
+- [x] Six characters with all expressions + idle animations; `reactions.ts`; cosmetics overlay
+- [x] Characters in lesson screen, results, path, empty states
+- [x] sfx; confetti; streak flame animation; satisfying button press states; reduced-motion
 - **Done when:** a full lesson feels lively; owner sign-off on look & feel (this milestone benefits most from human review).
 
 ### M9 — Engagement systems [med]
-- [ ] Achievements + profile grid; daily quests + Quests page
-- [ ] Leagues with seeded bots, weekly rollover, promotion/demotion, Leagues page
-- [ ] SRS + Practice page (weak skills, mistakes review)
+- [x] Achievements + profile grid; daily quests + Quests page
+- [x] Leagues with seeded bots, weekly rollover, promotion/demotion, Leagues page
+- [x] SRS + Practice page (weak skills, mistakes review)
 - **Done when:** pure logic tested; pages render real data.
 
 ### M10 — AI pipeline [high]
-- [ ] Provider interface, anthropic adapter, mock provider, prompts, two-stage generate, validation + autoCheck + retry loop, budget, job logging
-- [ ] CLI with `--validate`
+- [x] Provider interface, anthropic adapter, mock provider, prompts, two-stage generate, validation + autoCheck + retry loop, budget, job logging
+- [x] CLI with `--validate`
 - **Done when:** pipeline tests pass with the mock; with a real key, the CLI produces a pack that validates and plays (owner runs this).
 
 ### M11 — Admin [med]
-- [ ] Auth gate, generate form + live log, pack list, review page, inline JSON edit, regenerate lesson, publish/archive, export/import, preview player
+- [x] Auth gate, generate form + live log, pack list, review page, inline JSON edit, regenerate lesson, publish/archive, export/import, preview player
 - **Done when:** owner can generate → review → publish → play, without touching the terminal.
 
 ### M12 — Accounts & deploy [med]
-- [ ] Auth.js (credentials: email + password, hashed with bcrypt) replacing the demo user; demo user still available in dev
-- [ ] Postgres config for production; deploy notes (Vercel + managed Postgres) in README
+- [x] Accounts: guest-first signed-cookie sessions + email/password (bcrypt) — replaces Auth.js, see decisions log; demo user seeded
+- [x] Postgres config for production; deploy notes (Vercel + managed Postgres) in README
 - **Done when:** two accounts have independent progress and share a league.
 
 ### M13 — Hardening [low]
-- [ ] Playwright e2e: play a lesson by keyboard; fail a lesson; streak/goal flow; admin publish (mock provider)
-- [ ] Accessibility pass (labels, focus, contrast), loading/error states, empty states
-- [ ] README: setup, env vars, how to generate content, **how to add a new question type** (checklist mirroring the registry)
+- [x] Playwright e2e: play a lesson by keyboard; fail a lesson; streak/goal flow; admin publish (mock provider)
+- [x] Accessibility pass (labels, focus, contrast), loading/error states, empty states
+- [x] README: setup, env vars, how to generate content, **how to add a new question type** (checklist mirroring the registry)
 - **Done when:** CI green including e2e.
 
 ---
@@ -494,3 +495,46 @@ _(Append dated one-line entries for any choice not covered above.)_
 - 2026-10-26: `ExerciseProps.onSubmit` lets self-finishing types (match_pairs) trigger Check themselves.
 - 2026-10-26: lucide-react for UI icons; custom SVG game icons live in `src/components/icons.tsx`.
 - 2026-10-26: Vitest config is `vitest.config.mts` using Vite's native `resolve.tsconfigPaths`.
+
+### Build decisions (October 2026)
+
+**Platform & infrastructure**
+- Accounts use a stateless signed cookie (`<userId>.<hmac>`, AUTH_SECRET) instead of Auth.js: simpler, no beta dependency. Visitors start as **guests** (Duolingo-style); "Create profile" attaches email + password to the same user so progress is kept.
+- `cn()` uses tailwind-merge so later classes win. `.pressable` reads `--edge`/`--depth` with fallbacks and never sets them, because this Tailwind/Turbopack pipeline flattens custom `@layer components` blocks; the global focus ring lives in `@layer base` so `outline-none` can override it.
+- `LessonRun` table (one row per finished lesson) powers stats, perfect-lesson counts and the streak calendar; `LeagueMembership.finalRank` records week results.
+- Lesson player is fixed-height (`h-dvh`) with a scrolling body so the Check/feedback footer is always visible.
+- Practice sessions are `/lesson/practice` (SRS) and `/lesson/mistakes`; a lesson with 0 hearts redirects to `/practice?hearts=0`.
+- Quest rewards are granted automatically when a quest completes. Sitting out whole league weeks drops one tier.
+- A mid-lesson gem refill resets the engine's `heartsLost` (the wallet already reflects it), so hearts are never charged twice.
+- `solve(exercise)` (src/content/solve.ts) builds a correct response for any type; a test asserts every registered example is answerable. E2E tests use it through a test hook that only loads in development or when `NEXT_PUBLIC_E2E=1`.
+- Characters read the learner's saved outfit from `OutfitProvider` unless an `outfit` prop is passed.
+- Character animation styles ship as a React 19 `<style href precedence>` injected once (Turbopack treats every imported .css as global). Reduced motion is read in a hydration-safe way.
+
+**Game rules (src/game)**
+- Freezes are spent only when they cover every missed day; an unsavable streak keeps its freezes. Frozen days keep a streak alive but don't add to it. `settleStreak` runs whenever the player state syncs (any page load), so a freeze bought afterwards can't rescue past days.
+- Mistakes review drops an exercise once it has been answered correctly after its last mistake.
+- SRS reviews before the due date get only partial interval growth.
+- Leagues: real users in the same tier/week share one group (`groupBuckets`), real users win ties against bots; ~210 XP/week reaches 7th at the bottom tier.
+- Quests: each day has one easy, one medium and one hard quest.
+
+**Question types**
+- fill_blank forgives one-letter typos on answers ≥5 letters, except when the slip changes the science term (alkane/alkene, sulfate/sulfite, proton/photon, neutron/neuron, …); markup-free forms of answers are accepted (CO_{2} ↔ co2).
+- word_bank allows at most 9 tiles so each has a 1–9 key; tiles fly to slots with `layoutId` (180ms), keyboard moves are instant.
+- match_pairs re-shuffles so no row lines up with its match; finishing is always correct, slips are reported as feedback. Keys: left 1–6, right A–F.
+- ordering: digits pick a card by its current slot; arrows move it; keyboard moves animate ≤100ms.
+- categorize: the first unplaced item is active; 1–4 drops it in a bin; ←/→ change the active item.
+- numeric: digits type into the field; the unit picker uses arrows/1–5 when focused. Extra feedback for rounding, wrong unit, wrong sign and powers of ten.
+- equation_balance: formulas validated against the 118 element symbols; grading counts atoms (balanced but not lowest terms → "simplify").
+- dialogue: consecutive lines from one speaker are grouped; a digit press during the reveal shows everything.
+- graph_read hides y values in tooltips until after checking; numeric answers may be read off either axis.
+- graph_plot never allows more points than required; arrows + Space work without focus.
+- simulation grades only adjustable params (clamped/snapped to the sliders); tolerance must be ≤20% of the target; pendulum shown at ½ speed and waves at ¼ (labelled).
+
+**AI pipeline**
+- Core modules avoid `"server-only"` so the CLI (tsx) can run them; `src/server/ai/index.ts` and `jobs.ts` are the server-only entry points.
+- The outline uses structured outputs; each lesson uses a single tool call with the full lesson schema (it exceeds structured-output limits). Everything is re-validated with Zod. Streaming, adaptive thinking, a cached system prompt, and our own retry/backoff for 429/5xx.
+- `lessonsPerUnit` counts standard lessons; checkpoints come on top. A draft never overwrites a published/archived pack (it gets a `-2` suffix). Server-side refusal fallbacks are on by default (`AI_FALLBACKS=off` disables).
+
+**Admin**
+- Exercises are previewed with their real components in the locked "correct" state (an answer key), wrapped in `inert`.
+- Publishing is refused while automatic checks report problems. Imports never overwrite an existing pack.
