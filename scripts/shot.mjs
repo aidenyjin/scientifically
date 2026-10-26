@@ -1,6 +1,6 @@
 // Dev helper: screenshot a page after scripted key presses / clicks.
 // Tip: for signed-in pages use http://localhost:3000/dev/login?next=/shop as the URL.
-// Usage: node scripts/shot.mjs <url> <out.png> [key:Enter] [key:1] [click:<css>] [type:<text>] [wait:300] [shot:<file.png>]
+// Usage: node scripts/shot.mjs <url> <out.png> [key:Enter] [key:1] [click:<css>] [type:<text>] [goto:/path] [wait:300] [shot:<file.png>]
 import { createRequire } from "module"; const require = createRequire(import.meta.url); let pw; try { pw = require("playwright"); } catch { pw = require("/opt/node-tools/node_modules/playwright"); } const { chromium } = pw;
 const [,, url, out, ...actions] = process.argv;
 const browser = await chromium.launch();
@@ -13,6 +13,7 @@ for (const a of actions) {
   if (a.startsWith("key:")) await page.keyboard.press(a.slice(4));
   else if (a.startsWith("click:")) await page.click(a.slice(6));
   else if (a.startsWith("type:")) await page.keyboard.type(a.slice(5));
+  else if (a.startsWith("goto:")) await page.goto(new URL(a.slice(5), url).href, { waitUntil: "networkidle" });
   else if (a.startsWith("wait:")) await page.waitForTimeout(Number(a.slice(5)));
   else if (a.startsWith("shot:")) await page.screenshot({ path: a.slice(5) });
 }
