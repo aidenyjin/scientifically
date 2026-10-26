@@ -29,6 +29,7 @@ model User {
   quests       QuestProgress[]
   leagues      LeagueMembership[]
   purchases    Purchase[]
+  runs         LessonRun[]
 }
 
 model Wallet {
@@ -66,6 +67,24 @@ model LessonProgress {
   timesCompleted Int      @default(1)
 
   @@unique([userId, packId, lessonId])
+}
+
+/// One finished lesson (any mode). Powers stats, perfect-lesson counts and the streak calendar.
+model LessonRun {
+  id         String   @id @default(cuid())
+  userId     String
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  packId     String
+  lessonId   String
+  /// standard | checkpoint | practice
+  mode       String
+  accuracy   Float
+  perfect    Boolean
+  xp         Int
+  durationMs Int
+  at         DateTime @default(now())
+
+  @@index([userId, at])
 }
 
 model Attempt {
@@ -144,7 +163,8 @@ model LeagueMembership {
   tier    Int
   groupId String
   /// set when the week is closed: promoted | demoted | stayed
-  outcome String?
+  outcome   String?
+  finalRank Int?
 
   @@unique([userId, weekId])
   @@index([weekId, groupId])

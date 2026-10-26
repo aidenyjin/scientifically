@@ -1,32 +1,32 @@
 import "server-only";
-import { localDateString, now } from "@/lib/clock";
-import { db } from "@/server/db";
+import { now } from "@/lib/clock";
 import { getActivePack, listPacks } from "@/server/repo/packs";
 import { requireUser } from "@/server/repo/users";
+import { syncPlayer, xpToday } from "./player";
 
-/** Data for the always-visible stats in the app shell. */
+/** Data for the always-visible stats in the app shell. Also syncs hearts/streak to now. */
 export async function getShellData() {
   const user = await requireUser();
-  const [pack, packs] = await Promise.all([getActivePack(user.activePackId), listPacks("published")]);
-  const today = localDateString(now(), user.timezone);
-  const recent = await db.xpEvent.findMany({
-    where: { userId: user.id, at: { gte: new Date(now().getTime() - 48 * 3600_000) } },
-    select: { amount: true, at: true },
-  });
-  const xpToday = recent
-    .filter((e) => localDateString(e.at, user.timezone) === today)
-    .reduce((sum, e) => sum + e.amount, 0);
+  const t = now();
+  const [pack, packs, player, xp] = await Promise.all([
+    getActivePack(user.activePackId),
+    listPacks("published"),
+    syncPlayer(user, t),
+    xpToday(user, t),
+  ]);
 
   return {
     user,
+    player,
     pack: pack ? { id: pack.id, title: pack.title, subject: pack.subject } : null,
     packs: packs.map((p) => ({ id: p.id, title: p.title, subject: p.subject, level: p.level })),
-    streak: user.streak?.current ?? 0,
-    streakActiveToday: user.streak?.lastActiveDate === today,
-    gems: user.wallet?.gems ?? 0,
-    hearts: user.wallet?.hearts ?? 0,
-    freezes: user.wallet?.streakFreezes ?? 0,
-    xpToday,
+    streak: player.streak.current,
+    streakActiveToday: player.streak.activeToday,
+    gems: player.wallet.gems,
+    hearts: player.hearts,
+    nextHeartAt: player.nextHeartAt,
+    freezes: player.wallet.streakFreezes,
+    xpToday: xp,
     dailyGoal: user.dailyGoalXp,
   };
 }

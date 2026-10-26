@@ -10,15 +10,15 @@ import {
 
 export async function completeLessonAction(input: LessonCompletionInput): Promise<CompletionSummary> {
   const user = await requireUser();
-  return completeLessonForUser(user.id, input);
+  return completeLessonForUser(user, input);
 }
 
 export async function abandonLessonAction(input: { heartsLost: number }): Promise<void> {
   const user = await requireUser();
-  await loseHearts(user.id, Math.max(0, Math.floor(input.heartsLost)));
+  await loseHearts(user, Math.max(0, Math.floor(input.heartsLost)));
 }
 
 export async function refillHeartsAction(): Promise<RefillResult> {
   const user = await requireUser();
-  return refillHeartsWithGems(user.id);
+  return refillHeartsWithGems(user);
 }

@@ -178,10 +178,10 @@ export function LessonPlayer(props: LessonPlayerProps) {
   const failedCharacter = exercises.find((e) => e.characterId)?.characterId ?? "lumi";
 
   return (
-    <div className="flex min-h-dvh flex-col bg-bg">
+    <div className="flex h-dvh flex-col bg-bg">
       <LessonTopBar progress={progress(lesson)} hearts={lesson.hearts} combo={lesson.combo} onQuit={() => setQuitOpen(true)} />
 
-      <main className="flex flex-1 justify-center overflow-y-auto px-8 py-8">
+      <main className="flex min-h-0 flex-1 justify-center overflow-y-auto px-8 py-8">
         {exercise && (
           <div key={`${lesson.position}-${exercise.id}`} className="flex w-full max-w-[720px] animate-rise-in flex-col gap-7">
             <div className="flex items-start justify-between gap-4">

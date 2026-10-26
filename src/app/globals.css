@@ -149,11 +149,11 @@ body {
 /*
  * Chunky "3D" pressable surface. The bottom shadow is the depth; pressing
  * moves the face down into it. Transform only, so it stays on the GPU.
+ * Customise with utilities: [--edge:<colour>] and [--depth:<length>]. The
+ * variables are read with fallbacks (never set here) so utilities always win.
  */
 .pressable {
-  --depth: 4px;
-  --edge: var(--line-strong);
-  box-shadow: 0 var(--depth) 0 var(--edge);
+  box-shadow: 0 var(--depth, 4px) 0 var(--edge, var(--line-strong));
   transition:
     transform 120ms var(--ease-out),
     box-shadow 120ms var(--ease-out),
@@ -163,8 +163,8 @@ body {
   transform: translateY(0);
 }
 .pressable:active:not(:disabled):not([aria-disabled="true"]) {
-  transform: translateY(var(--depth));
-  box-shadow: 0 0 0 var(--edge);
+  transform: translateY(var(--depth, 4px));
+  box-shadow: 0 0 0 var(--edge, var(--line-strong));
   transition-duration: 60ms;
 }
 .pressable:disabled,
