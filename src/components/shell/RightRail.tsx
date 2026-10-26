@@ -1,5 +1,7 @@
 import Link from "next/link";
 import { BoltIcon } from "@/components/icons";
+import { LeagueBadge } from "@/components/leagues/LeagueBadge";
+import { QuestList } from "@/components/quests/QuestList";
 import { Card, CardTitle } from "@/components/ui/Card";
 import { ProgressBar } from "@/components/ui/ProgressBar";
 import type { ShellData } from "@/server/services/shell";
@@ -14,7 +16,19 @@ export function RightRail({ data, children }: { data: ShellData; children?: Reac
     <aside className="sticky top-0 hidden h-dvh w-[368px] shrink-0 flex-col gap-5 overflow-y-auto py-6 pr-8 pl-2 min-[1200px]:flex">
       <StatBar data={data} />
       {children}
+      <LeagueCard league={data.league} />
       <DailyGoalCard xp={data.xpToday} goal={data.dailyGoal} />
+      <Card>
+        <div className="flex items-center justify-between">
+          <CardTitle>Daily quests</CardTitle>
+          <Link href="/quests" className="text-sm font-bold text-brand hover:underline">
+            View all
+          </Link>
+        </div>
+        <div className="mt-4">
+          <QuestList quests={data.quests} compact />
+        </div>
+      </Card>
     </aside>
   );
 }
@@ -40,6 +54,34 @@ export function DailyGoalCard({ xp, goal }: { xp: number; goal: number }) {
         <span className="w-14 text-right text-sm font-bold text-muted tabular-nums">
           {Math.min(xp, goal)}/{goal}
         </span>
+      </div>
+    </Card>
+  );
+}
+
+function LeagueCard({ league }: { league: ShellData["league"] }) {
+  const inZone = league.rank <= league.promote && league.xp > 0;
+  return (
+    <Card>
+      <div className="flex items-center justify-between">
+        <CardTitle>{league.tierName} League</CardTitle>
+        <Link href="/leagues" className="text-sm font-bold text-brand hover:underline">
+          View league
+        </Link>
+      </div>
+      <div className="mt-3 flex items-center gap-4">
+        <LeagueBadge tier={league.tier} size={46} />
+        <p className="text-[15px] font-semibold text-ink-soft">
+          {league.xp === 0 ? (
+            "Complete a lesson to join this week's leaderboard."
+          ) : (
+            <>
+              You&apos;re ranked <span className="font-bold text-ink">#{league.rank}</span> with{" "}
+              <span className="font-bold text-ink">{league.xp} XP</span>
+              {inZone ? " — in the promotion zone!" : "."}
+            </>
+          )}
+        </p>
       </div>
     </Card>
   );

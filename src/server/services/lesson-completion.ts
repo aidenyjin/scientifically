@@ -76,6 +76,12 @@ export async function completeLessonForUser(
 
   // 1. Streak
   const activity = applyActivity(player.streakState, player.today, player.wallet.streakFreezes);
+  // Freezes may already have been spent by syncPlayer (e.g. when the app was opened).
+  const lastActive = player.streakState.lastActiveDate;
+  const freezeUsed =
+    activity.extended &&
+    !activity.reset &&
+    activity.state.frozenDates.some((d) => (lastActive === null || d > lastActive) && d < player.today);
   const freezes = Math.max(0, player.wallet.streakFreezes - activity.freezesUsed);
 
   // 2. Hearts
@@ -225,7 +231,7 @@ export async function completeLessonForUser(
     gemsEarned,
     gemsBalance: wallet.gems,
     hearts: wallet.hearts,
-    streak: { current: activity.state.current, extended: activity.extended, freezeUsed: activity.freezesUsed > 0 },
+    streak: { current: activity.state.current, extended: activity.extended, freezeUsed },
     dailyGoal: { xpToday: goal.xpToday, goal: user.dailyGoalXp, justReached: goal.justReached, chestGems },
     quests: questUpdates.map((q) => ({
       id: q.id,
