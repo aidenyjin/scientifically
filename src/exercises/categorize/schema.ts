@@ -10,6 +10,10 @@ export const categorizeSchema = exerciseBaseSchema
       .min(4)
       .max(10),
   })
+  .refine((ex) => new Set(ex.categories.map((c) => c.id)).size === ex.categories.length, {
+    message: "category ids must be unique",
+    path: ["categories"],
+  })
   .refine((ex) => ex.items.every((it) => ex.categories.some((c) => c.id === it.categoryId)), {
     message: "every item.categoryId must match a category id",
     path: ["items"],
