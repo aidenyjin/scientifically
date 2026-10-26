@@ -8,7 +8,14 @@ import { clearSession, setSession } from "@/server/auth/session";
 import { db } from "@/server/db";
 import { createUser, getCurrentUser, isValidTimeZone } from "@/server/repo/users";
 
-export type FormState = { error?: string } | undefined;
+/** Form result. `field` names the input to flag; `values` refills the non-secret inputs after React resets the form. */
+export type FormState =
+  { error?: string; field?: string; values?: Record<string, string> } | undefined;
+
+/** Echo back what the person typed (never the password) so a failed submit doesn't wipe the form. */
+function keep(formData: FormData, ...names: string[]): Record<string, string> {
+  return Object.fromEntries(names.map((n) => [n, String(formData.get(n) ?? "")]));
+}
 
 const goalSchema = z.coerce
   .number()
@@ -24,7 +31,9 @@ function tzOrUtc(value: FormDataEntryValue | null): string {
 export async function startAsGuest(formData: FormData): Promise<void> {
   const goal = goalSchema.safeParse(formData.get("dailyGoal"));
   const packId = String(formData.get("packId") ?? "");
-  const pack = packId ? await db.contentPack.findFirst({ where: { id: packId, status: "published" } }) : null;
+  const pack = packId
+    ? await db.contentPack.findFirst({ where: { id: packId, status: "published" } })
+    : null;
   const user = await createUser({
     name: "Scientist",
     dailyGoalXp: goal.success ? goal.data : 20,
@@ -35,14 +44,27 @@ export async function startAsGuest(formData: FormData): Promise<void> {
   redirect("/learn");
 }
 
-const loginSchema = z.object({ email: z.string().trim().toLowerCase().email(), password: z.string().min(1) });
+const loginSchema = z.object({
+  email: z.string().trim().toLowerCase().email(),
+  password: z.string().min(1),
+});
 
 export async function login(_prev: FormState, formData: FormData): Promise<FormState> {
-  const parsed = loginSchema.safeParse({ email: formData.get("email"), password: formData.get("password") });
-  if (!parsed.success) return { error: "Enter your email and password." };
+  const parsed = loginSchema.safeParse({
+    email: formData.get("email"),
+    password: formData.get("password"),
+  });
+  if (!parsed.success) {
+    const field = parsed.error.issues[0]?.path[0] === "password" ? "password" : "email";
+    return { error: "Enter your email and password.", field, values: keep(formData, "email") };
+  }
   const user = await db.user.findUnique({ where: { email: parsed.data.email } });
   if (!user?.passwordHash || !(await bcrypt.compare(parsed.data.password, user.passwordHash))) {
-    return { error: "That email and password don't match." };
+    return {
+      error: "That email and password don't match.",
+      field: "password",
+      values: keep(formData, "email"),
+    };
   }
   await setSession(user.id);
   redirect("/learn");
@@ -61,9 +83,18 @@ export async function signup(_prev: FormState, formData: FormData): Promise<Form
     email: formData.get("email"),
     password: formData.get("password"),
   });
-  if (!parsed.success) return { error: parsed.error.issues[0]?.message ?? "Check the form" };
+  const values = keep(formData, "name", "email");
+  if (!parsed.success) {
+    const issue = parsed.error.issues[0];
+    return {
+      error: issue?.message ?? "Check the form",
+      field: String(issue?.path[0] ?? ""),
+      values,
+    };
+  }
   const { name, email, password } = parsed.data;
-  if (await db.user.findUnique({ where: { email } })) return { error: "An account with that email already exists." };
+  if (await db.user.findUnique({ where: { email } }))
+    return { error: "An account with that email already exists.", field: "email", values };
   const passwordHash = await bcrypt.hash(password, 10);
 
   const current = await getCurrentUser();
@@ -71,7 +102,12 @@ export async function signup(_prev: FormState, formData: FormData): Promise<Form
     await db.user.update({ where: { id: current.id }, data: { name, email, passwordHash } });
     redirect("/learn");
   }
-  const user = await createUser({ name, email, passwordHash, timezone: tzOrUtc(formData.get("timezone")) });
+  const user = await createUser({
+    name,
+    email,
+    passwordHash,
+    timezone: tzOrUtc(formData.get("timezone")),
+  });
   await setSession(user.id);
   redirect("/learn");
 }

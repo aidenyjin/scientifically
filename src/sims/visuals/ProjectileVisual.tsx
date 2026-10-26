@@ -117,7 +117,16 @@ export function ProjectileVisual({ params, outputs, goal }: SimVisualProps) {
         </g>
         <circle r={13} fill="var(--brand)" stroke="var(--surface)" strokeWidth={3} />
         <circle r={4} fill="var(--surface)" />
-        <text x={(52 * Math.cos(a / 2)).toFixed(1)} y={(4 - 52 * Math.sin(a / 2)).toFixed(1)} className="fill-brand text-[12px] font-bold">
+        <text
+          x={(52 * Math.cos(a / 2)).toFixed(1)}
+          y={(4 - 52 * Math.sin(a / 2)).toFixed(1)}
+          // A surface-coloured halo keeps the angle readable where the dotted path crosses it.
+          stroke="var(--surface)"
+          strokeWidth={4}
+          strokeLinejoin="round"
+          paintOrder="stroke"
+          className="fill-brand text-[12px] font-bold"
+        >
           {Math.round(angle)}°
         </text>
       </g>

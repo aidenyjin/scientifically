@@ -38,7 +38,8 @@ export async function adminLogoutAction(): Promise<void> {
 // ---------------------------------------------------------------- generation
 
 const num = (v: FormDataEntryValue | null) => (v === null || v === "" ? undefined : Number(v));
-const str = (v: FormDataEntryValue | null) => (typeof v === "string" && v.trim() !== "" ? v.trim() : undefined);
+const str = (v: FormDataEntryValue | null) =>
+  typeof v === "string" && v.trim() !== "" ? v.trim() : undefined;
 
 export async function startGenerationAction(
   _prev: { errors?: string[] } | undefined,
@@ -61,19 +62,26 @@ export async function startGenerationAction(
     maxTotalTokens: num(formData.get("maxTotalTokens")),
   });
   if (!parsed.success) {
-    return { errors: parsed.error.issues.map((i) => `${i.path.join(".") || "form"}: ${i.message}`) };
+    return {
+      errors: parsed.error.issues.map((i) => `${i.path.join(".") || "form"}: ${i.message}`),
+    };
   }
   const id = await startGenerationJob(parsed.data);
   redirect(`/admin/jobs/${id}`);
 }
 
 /** JSON-safe job view for polling. */
-export type JobSnapshot = Omit<GenerationJobView, "createdAt" | "updatedAt"> & { createdAt: string; updatedAt: string };
+export type JobSnapshot = Omit<GenerationJobView, "createdAt" | "updatedAt"> & {
+  createdAt: string;
+  updatedAt: string;
+};
 
 export async function getJobAction(id: string): Promise<JobSnapshot | null> {
   await assertAdmin();
   const job = await getJob(id);
-  return job ? { ...job, createdAt: job.createdAt.toISOString(), updatedAt: job.updatedAt.toISOString() } : null;
+  return job
+    ? { ...job, createdAt: job.createdAt.toISOString(), updatedAt: job.updatedAt.toISOString() }
+    : null;
 }
 
 export async function cancelJobAction(id: string): Promise<{ ok: boolean }> {
@@ -83,7 +91,9 @@ export async function cancelJobAction(id: string): Promise<{ ok: boolean }> {
 
 // ---------------------------------------------------------------- packs
 
-async function loadPack(id: string): Promise<{ pack: ContentPack; status: PackStatus; generatedBy: object } | null> {
+async function loadPack(
+  id: string,
+): Promise<{ pack: ContentPack; status: PackStatus; generatedBy: object } | null> {
   const row = await db.contentPack.findUnique({ where: { id } });
   if (!row) return null;
   const parsed = contentPackSchema.safeParse(JSON.parse(row.json));
@@ -103,12 +113,20 @@ export async function setPackStatusAction(id: string, status: PackStatus): Promi
   if (!loaded) return { ok: false, errors: ["Pack not found or invalid."] };
   if (status === "published") {
     const check = checkPack(loaded.pack);
-    if (!check.ok) return { ok: false, errors: ["Fix these problems before publishing:", ...check.errors.slice(0, 20)] };
+    if (!check.ok)
+      return {
+        ok: false,
+        errors: ["Fix these problems before publishing:", ...check.errors.slice(0, 20)],
+      };
   }
   await db.contentPack.update({ where: { id }, data: { status } });
   revalidatePath("/admin", "layout");
   revalidatePath("/learn");
-  return { ok: true, message: status === "published" ? "Published — learners can see it now." : `Moved to ${status}.` };
+  return {
+    ok: true,
+    message:
+      status === "published" ? "Published — learners can see it now." : `Moved to ${status}.`,
+  };
 }
 
 export async function deletePackAction(id: string): Promise<void> {
@@ -124,7 +142,8 @@ export async function importPackAction(
 ): Promise<{ errors?: string[]; packId?: string }> {
   await assertAdmin();
   const file = formData.get("file");
-  if (!(file instanceof File) || file.size === 0) return { errors: ["Choose a .json file to import."] };
+  if (!(file instanceof File) || file.size === 0)
+    return { errors: ["Choose a .json file to import."] };
   if (file.size > 5_000_000) return { errors: ["That file is larger than 5 MB."] };
   const check = checkPackJson(await file.text());
   if (!check.pack) return { errors: check.errors.slice(0, 30) };
@@ -132,7 +151,10 @@ export async function importPackAction(
   // Never overwrite an existing pack on import.
   let id = pack.id;
   for (let n = 2; await db.contentPack.findUnique({ where: { id } }); n++) id = `${pack.id}-${n}`;
-  await savePack({ ...pack, id }, "draft", { source: "import", importedAt: new Date().toISOString() });
+  await savePack({ ...pack, id }, "draft", {
+    source: "import",
+    importedAt: new Date().toISOString(),
+  });
   revalidatePath("/admin");
   redirect(`/admin/packs/${id}`);
 }
@@ -149,7 +171,11 @@ function replaceExercise(pack: ContentPack, exerciseId: string, next: Exercise |
   return false;
 }
 
-export async function updateExerciseAction(packId: string, exerciseId: string, json: string): Promise<ActionResult> {
+export async function updateExerciseAction(
+  packId: string,
+  exerciseId: string,
+  json: string,
+): Promise<ActionResult> {
   await assertAdmin();
   const loaded = await loadPack(packId);
   if (!loaded) return { ok: false, errors: ["Pack not found or invalid."] };
@@ -160,33 +186,50 @@ export async function updateExerciseAction(packId: string, exerciseId: string, j
     return { ok: false, errors: [`Not valid JSON — ${(error as Error).message}`] };
   }
   const pack = structuredClone(loaded.pack);
-  if (!replaceExercise(pack, exerciseId, value as Exercise)) return { ok: false, errors: ["Exercise not found."] };
+  if (!replaceExercise(pack, exerciseId, value as Exercise))
+    return { ok: false, errors: ["Exercise not found."] };
   const check = checkPack(pack);
   if (!check.pack) return { ok: false, errors: check.errors.slice(0, 20) };
-  const ownErrors = check.errors.filter((e) => e.includes(`"${(value as { id?: string }).id ?? exerciseId}"`));
+  const ownErrors = check.errors.filter((e) =>
+    e.includes(`"${(value as { id?: string }).id ?? exerciseId}"`),
+  );
   if (ownErrors.length) return { ok: false, errors: ownErrors };
   await savePack(check.pack, loaded.status, loaded.generatedBy);
   revalidatePath(`/admin/packs/${packId}`);
   return { ok: true, message: "Saved." };
 }
 
-export async function deleteExerciseAction(packId: string, exerciseId: string): Promise<ActionResult> {
+export async function deleteExerciseAction(
+  packId: string,
+  exerciseId: string,
+): Promise<ActionResult> {
   await assertAdmin();
   const loaded = await loadPack(packId);
   if (!loaded) return { ok: false, errors: ["Pack not found or invalid."] };
   const pack = structuredClone(loaded.pack);
-  if (!replaceExercise(pack, exerciseId, null)) return { ok: false, errors: ["Exercise not found."] };
+  if (!replaceExercise(pack, exerciseId, null))
+    return { ok: false, errors: ["Exercise not found."] };
   const check = checkPack(pack);
-  if (!check.pack) return { ok: false, errors: ["A lesson needs at least one exercise.", ...check.errors.slice(0, 5)] };
+  if (!check.pack)
+    return {
+      ok: false,
+      errors: ["A lesson needs at least one exercise.", ...check.errors.slice(0, 5)],
+    };
   await savePack(check.pack, loaded.status, loaded.generatedBy);
   revalidatePath(`/admin/packs/${packId}`);
   return { ok: true, message: "Deleted." };
 }
 
-export async function regenerateLessonAction(packId: string, lessonId: string, notes: string): Promise<ActionResult> {
+export async function regenerateLessonAction(
+  packId: string,
+  lessonId: string,
+  notes: string,
+): Promise<ActionResult> {
   await assertAdmin();
   try {
-    const result = await regeneratePackLesson(packId, lessonId, { notes: notes.trim() || undefined });
+    const result = await regeneratePackLesson(packId, lessonId, {
+      notes: notes.trim() || undefined,
+    });
     revalidatePath(`/admin/packs/${packId}`);
     return {
       ok: true,

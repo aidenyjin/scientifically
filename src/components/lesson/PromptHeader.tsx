@@ -16,8 +16,14 @@ export function PromptHeader({ exercise, expression }: { exercise: Exercise; exp
   }
   return (
     <div className="flex items-end gap-4">
-      <Character id={exercise.characterId} expression={expression} size={112} animate />
-      <div className="relative mb-6 rounded-3xl border-2 border-line bg-surface px-5 py-4 shadow-card">
+      <Character
+        id={exercise.characterId}
+        expression={expression}
+        size={112}
+        animate
+        className="[@media(max-height:840px)]:size-[92px]"
+      />
+      <div className="relative mb-6 rounded-3xl [@media(max-height:840px)]:mb-4 border-2 border-line bg-surface px-5 py-4 shadow-card">
         {/* bubble tail */}
         <span
           aria-hidden

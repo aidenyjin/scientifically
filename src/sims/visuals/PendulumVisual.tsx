@@ -7,7 +7,14 @@ import { SCENE, type SimVisualProps } from "./types";
 
 const PIVOT_X = 280;
 const PIVOT_Y = 24;
-const PX_PER_M = 54;
+const RULER_PX = 166;
+/** Ruler zoom levels (m): the smallest that fits the string, so short pendulums aren't a dot under the pivot. */
+const ZOOMS = [
+  { span: 0.5, tick: 0.1, label: 0.1 },
+  { span: 1, tick: 0.25, label: 0.5 },
+  { span: 2, tick: 0.5, label: 1 },
+  { span: 3, tick: 0.5, label: 1 },
+] as const;
 const AMPLITUDE = 20; // degrees
 /** Shown in slow motion, but in proportion: every period is stretched by the same factor. */
 const SLOW_MOTION = 2;
@@ -19,7 +26,9 @@ export function PendulumVisual({ params, outputs }: SimVisualProps) {
   const still = useStaticPose();
   const arm = useRef<SVGGElement>(null);
 
-  const lengthPx = clamp(length * PX_PER_M, 22, 166);
+  const zoom = ZOOMS.find((z) => length <= z.span + 1e-9) ?? ZOOMS[ZOOMS.length - 1];
+  const pxPerM = RULER_PX / zoom.span;
+  const lengthPx = clamp(length * pxPerM, 30, RULER_PX);
   const phase = useRef(0);
 
   useFrame((_, dt) => {
@@ -34,23 +43,24 @@ export function PendulumVisual({ params, outputs }: SimVisualProps) {
   const arcFrom = [PIVOT_X - arcR * Math.sin(a), PIVOT_Y + arcR * Math.cos(a)];
   const arcTo = [PIVOT_X + arcR * Math.sin(a), PIVOT_Y + arcR * Math.cos(a)];
   const rulerX = 130;
-  const marks = [0.5, 1, 1.5, 2, 2.5, 3].filter((m) => m * PX_PER_M <= 166);
+  const marks = Array.from({ length: Math.round(zoom.span / zoom.tick) }, (_, k) => Number(((k + 1) * zoom.tick).toFixed(2)));
+  const isLabel = (m: number) => Math.abs(m / zoom.label - Math.round(m / zoom.label)) < 1e-6;
 
   return (
     <svg viewBox={`0 0 ${SCENE.w} ${SCENE.h}`} className="block h-auto w-full" role="img" aria-label={`Pendulum ${short(length)} m long, period ${short(period)} s`}>
       {/* ruler */}
-      <line x1={rulerX} x2={rulerX} y1={PIVOT_Y} y2={PIVOT_Y + 166} stroke="var(--line-strong)" strokeWidth={2} />
+      <line x1={rulerX} x2={rulerX} y1={PIVOT_Y} y2={PIVOT_Y + RULER_PX} stroke="var(--line-strong)" strokeWidth={2} />
       {marks.map((m) => (
         <g key={m}>
-          <line x1={rulerX - (m % 1 ? 4 : 8)} x2={rulerX} y1={PIVOT_Y + m * PX_PER_M} y2={PIVOT_Y + m * PX_PER_M} stroke="var(--line-strong)" strokeWidth={2} />
-          {m % 1 === 0 && (
-            <text x={rulerX - 12} y={PIVOT_Y + m * PX_PER_M + 4} textAnchor="end" className="fill-muted text-[12px] font-bold">
+          <line x1={rulerX - (isLabel(m) ? 8 : 4)} x2={rulerX} y1={PIVOT_Y + m * pxPerM} y2={PIVOT_Y + m * pxPerM} stroke="var(--line-strong)" strokeWidth={2} />
+          {isLabel(m) && (
+            <text x={rulerX - 12} y={PIVOT_Y + m * pxPerM + 4} textAnchor="end" className="fill-muted text-[12px] font-bold">
               {m} m
             </text>
           )}
         </g>
       ))}
-      <line x1={rulerX + 6} x2={PIVOT_X - 30} y1={PIVOT_Y + lengthPx} y2={PIVOT_Y + lengthPx} stroke="var(--brand)" strokeWidth={1.5} strokeDasharray="3 5" opacity={0.6} />
+      <line x1={rulerX + 6} x2={PIVOT_X - lengthPx * Math.sin(a) - 22} y1={PIVOT_Y + lengthPx} y2={PIVOT_Y + lengthPx} stroke="var(--brand)" strokeWidth={1.5} strokeDasharray="3 5" opacity={0.6} />
 
       {/* swing extent */}
       <path

@@ -2,12 +2,22 @@ import { FlameIcon, GemIcon, HeartIcon } from "@/components/icons";
 import type { ShellData } from "@/server/services/shell";
 import { CourseSwitcher } from "./CourseSwitcher";
 
-function Stat({ icon, value, color, label }: { icon: React.ReactNode; value: React.ReactNode; color: string; label: string }) {
+function Stat({
+  icon,
+  value,
+  color,
+  label,
+}: {
+  icon: React.ReactNode;
+  value: React.ReactNode;
+  color: string;
+  label: string;
+}) {
   return (
     <span
       title={label}
       aria-label={label}
-      className="flex h-10 items-center gap-1.5 rounded-xl px-2.5 font-display text-[17px] font-bold tabular-nums transition-colors duration-150 hover:bg-surface-2"
+      className="font-display hover:bg-surface-2 flex h-10 items-center gap-1.5 rounded-xl px-2.5 text-[17px] font-bold tabular-nums transition-colors duration-150"
       style={{ color }}
     >
       {icon}
@@ -27,8 +37,18 @@ export function StatBar({ data }: { data: ShellData }) {
           icon={<FlameIcon size={26} muted={!data.streakActiveToday} />}
           value={data.streak}
         />
-        <Stat label={`${data.gems} gems`} color="var(--gem)" icon={<GemIcon size={26} />} value={data.gems} />
-        <Stat label={`${data.hearts} hearts`} color="var(--heart)" icon={<HeartIcon size={26} />} value={data.hearts} />
+        <Stat
+          label={`${data.gems} gems`}
+          color="var(--gem)"
+          icon={<GemIcon size={26} />}
+          value={data.gems}
+        />
+        <Stat
+          label={`${data.hearts} hearts`}
+          color="var(--heart)"
+          icon={<HeartIcon size={26} />}
+          value={data.hearts}
+        />
       </div>
     </div>
   );

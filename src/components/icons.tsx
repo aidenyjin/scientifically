@@ -12,7 +12,7 @@ export function FlameIcon({ size = 24, className, muted }: IconProps) {
         d="M12 11.6c.7 1.8 2.9 3 2.9 5.6a2.9 2.9 0 0 1-5.8 0c0-1.4.6-2.4 1.2-3.1.2.9.7 1.5 1.2 1.7-.1-1.5.1-2.9.5-4.2Z"
         fill={muted ? "var(--surface)" : "#ffd23f"}
       />
-      {!muted && <ellipse cx="9.2" cy="11.8" rx="1" ry="2.2" transform="rotate(20 9.2 11.8)" fill="white" opacity="0.35" />}
+      {!muted && <ellipse cx="7.6" cy="14.6" rx="0.9" ry="1.9" transform="rotate(20 7.6 14.6)" fill="white" opacity="0.35" />}
     </svg>
   );
 }

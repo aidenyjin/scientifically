@@ -74,7 +74,8 @@ function SimulationStage({ exercise, status, onChange, model }: Props & { model:
             </ul>
           </div>
         )}
-        <div className="px-3 pt-2 [&>svg]:mx-auto [&>svg]:max-h-[236px]">
+        {/* The scene shrinks on short screens so the sliders stay above the Check footer at 1280×800. */}
+        <div className="px-3 pt-2 [--sim-chrome:604px] [@media(min-height:841px)]:[--sim-chrome:680px] [&>svg]:mx-auto [&>svg]:max-h-[clamp(168px,calc(100dvh-var(--sim-chrome)),236px)]">
           <SimScene modelId={model.id} params={params} outputs={outputs} goal={exercise.goal} />
         </div>
         <GoalReadout model={model} goal={exercise.goal} outputs={outputs} status={status} />

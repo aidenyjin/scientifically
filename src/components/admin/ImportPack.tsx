@@ -1,7 +1,7 @@
 "use client";
 
 import { Upload } from "lucide-react";
-import { useActionState, useRef } from "react";
+import { useActionState, useRef, useState } from "react";
 import { importPackAction } from "@/app/admin/actions";
 import { Modal } from "@/components/ui/Modal";
 import { Button } from "@/components/ui/Button";
@@ -11,10 +11,16 @@ export function ImportPack() {
   const [state, action, pending] = useActionState(importPackAction, undefined);
   const formRef = useRef<HTMLFormElement>(null);
   const errors = state?.errors ?? [];
+  // The action result can't be cleared, so remember which result was dismissed.
+  const [dismissed, setDismissed] = useState<typeof state>(undefined);
+  const close = () => {
+    setDismissed(state);
+    formRef.current?.reset();
+  };
   return (
     <>
       <form ref={formRef} action={action}>
-        <label className="pressable inline-flex h-11 cursor-pointer items-center gap-2 rounded-2xl border-2 border-line bg-surface px-5 font-display text-[15px] font-semibold tracking-wide text-ink-soft uppercase [--edge:var(--line)] hover:bg-surface-2">
+        <label className="pressable border-line bg-surface font-display text-ink-soft hover:bg-surface-2 has-focus-visible:outline-brand/55 inline-flex h-11 cursor-pointer items-center gap-2 rounded-2xl border-2 px-5 text-[15px] font-semibold tracking-wide uppercase [--edge:var(--line)] has-focus-visible:outline-3 has-focus-visible:outline-offset-2">
           <Upload className="size-4" />
           {pending ? "Importing…" : "Import JSON"}
           <input
@@ -26,16 +32,28 @@ export function ImportPack() {
           />
         </label>
       </form>
-      <Modal open={errors.length > 0 && !pending} onClose={() => formRef.current?.reset()} label="Import failed" className="max-w-xl">
-        <h2 className="font-display text-xl font-semibold text-wrong-ink">That pack didn&apos;t validate</h2>
-        <ul className="mt-3 max-h-80 overflow-y-auto rounded-xl bg-surface-2 p-3 font-mono text-xs leading-relaxed text-ink-soft">
+      <Modal
+        open={errors.length > 0 && !pending && dismissed !== state}
+        onClose={close}
+        label="Import failed"
+        className="max-w-xl"
+      >
+        <h2 className="font-display text-wrong-ink text-xl font-semibold">
+          Couldn&apos;t import that pack
+        </h2>
+        <ul className="bg-surface-2 text-ink-soft mt-3 max-h-80 overflow-y-auto rounded-xl p-3 font-mono text-xs leading-relaxed">
           {errors.map((e, i) => (
             <li key={i}>{e}</li>
           ))}
         </ul>
-        <Button className="mt-4" onClick={() => location.reload()}>
-          OK
-        </Button>
+        <p className="text-ink-soft mt-3 text-sm">
+          Fix the file and import it again. Nothing was saved.
+        </p>
+        <div className="mt-4 flex justify-end">
+          <Button onClick={close} autoFocus>
+            Got it
+          </Button>
+        </div>
       </Modal>
     </>
   );

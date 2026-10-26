@@ -36,7 +36,7 @@ export function GoalReadout({
   return (
     <div
       className={cn(
-        "flex flex-wrap items-center justify-between gap-x-8 gap-y-3 border-t-2 px-5 py-4 transition-colors duration-200",
+        "flex flex-wrap items-center justify-between gap-x-8 gap-y-3 border-t-2 px-5 py-3.5 transition-colors duration-200",
         status === "answering" && "border-line bg-surface",
         status === "correct" && "border-correct/40 bg-correct-soft",
         status === "incorrect" && "border-wrong/40 bg-wrong-soft",

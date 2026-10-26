@@ -11,7 +11,12 @@ export default function SignupPage() {
       fields={[
         { name: "name", label: "Name", type: "text", autoComplete: "name" },
         { name: "email", label: "Email", type: "email", autoComplete: "email" },
-        { name: "password", label: "Password (8+ characters)", type: "password", autoComplete: "new-password" },
+        {
+          name: "password",
+          label: "Password (8+ characters)",
+          type: "password",
+          autoComplete: "new-password",
+        },
       ]}
       footer={{ text: "Already have one?", href: "/login", link: "Log in" }}
     />

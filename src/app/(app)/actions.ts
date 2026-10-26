@@ -15,7 +15,8 @@ export async function buyItemAction(itemId: string): Promise<BuyResult> {
   const result = await buyItem(user, itemId);
   revalidatePath("/", "layout");
   if (!result.ok) return { ok: false, error: result.error };
-  return { ok: true, gems: result.wallet.gems, message: `${result.item.name} purchased!` };
+  const extra = result.achievements.length ? ` Achievement unlocked: ${result.achievements.join(", ")}!` : "";
+  return { ok: true, gems: result.wallet.gems, message: `${result.item.name} purchased!${extra}` };
 }
 
 /** Wear or remove an owned cosmetic on a character. One item per slot. */

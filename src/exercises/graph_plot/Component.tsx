@@ -94,7 +94,13 @@ export function GraphPlotView({ exercise, status, onChange }: ExerciseProps<Grap
     : placed.map(() => "placed");
 
   return (
-    <div className="mx-auto grid w-full max-w-[640px] gap-3">
+    <div
+      // Size the grid to the screen height so it, the counter and the Check footer
+      // all fit on a 1280×800 laptop: (viewport − everything but the SVG) × aspect.
+      // The lesson layout is roomier above 840px tall, hence the larger chrome there.
+      className="mx-auto grid w-full gap-3 [--plot-chrome:450px] [@media(min-height:841px)]:[--plot-chrome:506px]"
+      style={{ maxWidth: `max(380px, min(640px, calc((100dvh - var(--plot-chrome)) * ${(VIEW.w / VIEW.h).toFixed(3)} + 20px)))` }}
+    >
       <div
         role="group"
         aria-label={`Plotting grid. ${toUnicodeText(axes.xLabel)} across, ${toUnicodeText(axes.yLabel)} up.`}
@@ -140,10 +146,10 @@ export function GraphPlotView({ exercise, status, onChange }: ExerciseProps<Grap
       <div className="flex flex-wrap items-center justify-between gap-3 px-1">
         <Counter placed={placed.length} needed={needed} full={full} locked={locked} />
         <p id={helpId} className={cn("flex flex-wrap items-center gap-1.5 text-sm font-semibold text-muted", locked && "invisible")}>
-          Click a gridpoint, or move with <Kbd>←</Kbd>
+          Click a gridpoint, or <Kbd>←</Kbd>
           <Kbd>↑</Kbd>
           <Kbd>→</Kbd>
-          <Kbd>↓</Kbd> and press <Kbd>Space</Kbd> to place or remove
+          <Kbd>↓</Kbd> then <Kbd>Space</Kbd>
         </p>
       </div>
       <p className="sr-only" aria-live="polite">
@@ -153,8 +159,9 @@ export function GraphPlotView({ exercise, status, onChange }: ExerciseProps<Grap
   );
 }
 
-function Counter({ placed, needed, full, locked }: { placed: number; needed: number; full: boolean; locked: boolean }) {
+function Counter({ placed, needed, full: fullFlash, locked }: { placed: number; needed: number; full: boolean; locked: boolean }) {
   const done = placed === needed && !locked;
+  const full = fullFlash && !locked;
   return (
     <div className="flex items-center gap-3">
       <div className="flex items-center gap-1" aria-hidden>

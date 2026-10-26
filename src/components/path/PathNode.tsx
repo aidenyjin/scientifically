@@ -26,6 +26,8 @@ export function PathNode({
   onClose: () => void;
 }) {
   const wrapRef = useRef<HTMLDivElement>(null);
+  const buttonRef = useRef<HTMLButtonElement>(null);
+  const popRef = useRef<HTMLDivElement>(null);
   const locked = lesson.state === "locked";
   const current = lesson.state === "current";
   const done = lesson.state === "completed";
@@ -37,7 +39,11 @@ export function PathNode({
     const onDown = (e: PointerEvent) => {
       if (!wrapRef.current?.contains(e.target as Node)) onClose();
     };
-    const onKey = (e: KeyboardEvent) => e.key === "Escape" && onClose();
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key !== "Escape") return;
+      onClose();
+      buttonRef.current?.focus();
+    };
     window.addEventListener("pointerdown", onDown);
     window.addEventListener("keydown", onKey);
     return () => {
@@ -46,32 +52,59 @@ export function PathNode({
     };
   }, [open, onClose]);
 
+  // Move focus to the Start link (so Enter starts it) and keep the whole
+  // popover on screen: scroll just enough to reveal it.
+  useEffect(() => {
+    if (!open || !popRef.current) return;
+    popRef.current.querySelector("a")?.focus({ preventScroll: true });
+    // offsetHeight ignores the pop-in scale, so this is the settled size.
+    const bottom = popRef.current.getBoundingClientRect().top + popRef.current.offsetHeight;
+    const overflow = bottom + 24 - window.innerHeight;
+    if (overflow <= 0) return;
+    const reduce =
+      window.matchMedia("(prefers-reduced-motion: reduce)").matches ||
+      document.documentElement.dataset.reduceMotion === "true";
+    window.scrollBy({ top: overflow, behavior: reduce ? "auto" : "smooth" });
+  }, [open]);
+
   const face = locked ? "var(--line)" : color;
   const edge = locked ? "var(--line-strong)" : `color-mix(in oklab, ${color} 70%, black)`;
 
   return (
-    <div ref={wrapRef} className="relative flex flex-col items-center" data-current={current || undefined}>
+    <div
+      ref={wrapRef}
+      className="relative flex flex-col items-center"
+      data-current={current || undefined}
+    >
       {current && !open && (
         <div className="absolute -top-[46px] z-10 animate-[bob_2.4s_ease-in-out_infinite]">
           <div
-            className="relative rounded-xl border-2 border-line bg-surface px-3 py-1.5 font-display text-sm font-bold tracking-wide uppercase shadow-card"
+            className="border-line bg-surface font-display shadow-card relative rounded-xl border-2 px-3 py-1.5 text-sm font-bold tracking-wide uppercase"
             style={{ color }}
           >
             {lesson.number === 1 && !checkpoint ? "Start" : "Next"}
-            <span className="absolute -bottom-[7px] left-1/2 size-3 -translate-x-1/2 rotate-45 border-r-2 border-b-2 border-line bg-surface" />
+            <span className="border-line bg-surface absolute -bottom-[7px] left-1/2 size-3 -translate-x-1/2 rotate-45 border-r-2 border-b-2" />
           </div>
         </div>
       )}
 
       <div className="relative" style={{ width: size, height: size }}>
         {current && (
+          // Centred on the face *plus* its 7px 3D edge, so the ring looks even all round.
           <span
             aria-hidden
-            className="absolute -inset-2.5 rounded-full border-[6px] opacity-25"
-            style={{ borderColor: color }}
+            className="absolute rounded-full border-[6px] opacity-25"
+            style={{
+              borderColor: color,
+              top: -10,
+              left: -13.5,
+              width: size + 27,
+              height: size + 27,
+            }}
           />
         )}
         <button
+          ref={buttonRef}
           type="button"
           onClick={onToggle}
           aria-expanded={open}
@@ -79,11 +112,17 @@ export function PathNode({
           className="pressable relative grid size-full place-items-center rounded-full [--depth:7px]"
           style={{ background: face, ["--edge" as string]: edge }}
         >
-          <span aria-hidden className="absolute top-[14%] left-[22%] h-[18%] w-[30%] -rotate-[30deg] rounded-full bg-white/25" />
+          <span
+            aria-hidden
+            className={cn(
+              "absolute top-[14%] left-[22%] h-[18%] w-[30%] -rotate-[30deg] rounded-full",
+              locked ? "bg-white/10" : "bg-white/25",
+            )}
+          />
           {checkpoint ? (
             <TrophyIcon size={40} className={cn(locked && "opacity-40 grayscale")} />
           ) : locked ? (
-            <Lock className="size-7 text-muted" strokeWidth={3} />
+            <Lock className="text-muted size-7" strokeWidth={3} />
           ) : done ? (
             <Check className="size-9 text-white" strokeWidth={4} />
           ) : (
@@ -94,15 +133,23 @@ export function PathNode({
 
       {open && (
         <div
+          ref={popRef}
           role="dialog"
           aria-label={lesson.title}
-          className="absolute top-[calc(100%+14px)] z-20 w-[300px] origin-top animate-pop-in rounded-2xl p-4 shadow-pop"
-          style={{ background: locked ? "var(--surface)" : color, border: locked ? "2px solid var(--line)" : undefined }}
+          className="animate-pop-in shadow-pop absolute top-[calc(100%+14px)] z-20 w-[300px] origin-top rounded-2xl p-4"
+          style={{
+            background: locked ? "var(--surface)" : color,
+            border: locked ? "2px solid var(--line)" : undefined,
+          }}
         >
           <span
             aria-hidden
             className="absolute -top-2 left-1/2 size-4 -translate-x-1/2 rotate-45"
-            style={{ background: locked ? "var(--surface)" : color, borderLeft: locked ? "2px solid var(--line)" : undefined, borderTop: locked ? "2px solid var(--line)" : undefined }}
+            style={{
+              background: locked ? "var(--surface)" : color,
+              borderLeft: locked ? "2px solid var(--line)" : undefined,
+              borderTop: locked ? "2px solid var(--line)" : undefined,
+            }}
           />
           <div className={cn("relative", locked ? "text-ink" : "text-white")}>
             <p className="font-display text-lg font-semibold">{lesson.title}</p>
@@ -117,11 +164,12 @@ export function PathNode({
               </ul>
             )}
             {locked ? (
-              <p className="mt-3 text-sm font-semibold text-muted">Complete the lessons before this to unlock it.</p>
+              <p className="text-muted mt-3 text-sm font-semibold">
+                Complete the lessons before this to unlock it.
+              </p>
             ) : (
               <Link
                 href={`/lesson/${lesson.id}`}
-                autoFocus
                 className={buttonClassName({
                   block: true,
                   variant: "secondary",
@@ -129,7 +177,11 @@ export function PathNode({
                 })}
                 style={{ color }}
               >
-                {done ? "Practice again · +5 XP" : checkpoint ? "Start checkpoint" : "Start · +10 XP"}
+                {done
+                  ? "Practice again · +5 XP"
+                  : checkpoint
+                    ? "Start checkpoint"
+                    : "Start · +10 XP"}
               </Link>
             )}
           </div>

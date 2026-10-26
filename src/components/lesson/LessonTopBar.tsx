@@ -17,7 +17,7 @@ export function LessonTopBar({
   onQuit: () => void;
 }) {
   return (
-    <header className="mx-auto flex w-full max-w-[1040px] items-center gap-5 px-8 pt-8 pb-2">
+    <header className="mx-auto flex w-full max-w-[1040px] items-center gap-5 px-8 pt-8 pb-2 [@media(max-height:840px)]:pt-5">
       <button
         type="button"
         onClick={onQuit}

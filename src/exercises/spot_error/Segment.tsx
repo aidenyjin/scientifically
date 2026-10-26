@@ -72,6 +72,8 @@ export function Segment({
       )}
     >
       <span className="mr-1.5">{badge}</span>
+      {/* word joiner: never leave the number badge alone at the end of a line */}
+      {"\u2060"}
       <RichText
         text={text}
         className={cn((state === "error" || state === "found") && "line-through decoration-wrong decoration-2")}

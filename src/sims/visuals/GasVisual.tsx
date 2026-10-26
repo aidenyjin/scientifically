@@ -1,13 +1,14 @@
 "use client";
 
-import { useRef } from "react";
+import { useId, useRef } from "react";
 import { rng } from "@/lib/rng";
 import { useFrame, useStaticPose } from "./hooks";
 import { clamp, short } from "./scale";
 import { SCENE, type SimVisualProps } from "./types";
 
-const BOX_L = 196;
-const BOX_R = 404;
+// Drawn right of centre so the condition chips (top-left, HTML) never overlap the cylinder.
+const BOX_L = 236;
+const BOX_R = 444;
 const FLOOR = 186;
 const MAX_H = 150; // px of cylinder for the largest volume
 const MAX_VOLUME = 50;
@@ -30,6 +31,7 @@ export function GasVisual({ params, outputs }: SimVisualProps) {
   const count = clamp(Math.round(6 + moles * 16), 6, 80);
   const dots = useRef<(SVGCircleElement | null)[]>([]);
   const particles = useRef<Particle[]>([]);
+  const fadeId = `gas-fade-${useId().replace(/:/g, "")}`;
 
   const height = clamp(volume / MAX_VOLUME, 0.06, 1) * MAX_H;
   const top = FLOOR - height;
@@ -60,6 +62,7 @@ export function GasVisual({ params, outputs }: SimVisualProps) {
 
   // Thermometer on the left.
   const thermoTop = 34;
+  const thermoX = BOX_L - 94;
   const thermoBottom = 168;
   const mercury = (thermoBottom - thermoTop - 10) * clamp((temperature - 50) / 600, 0.05, 1);
 
@@ -83,11 +86,21 @@ export function GasVisual({ params, outputs }: SimVisualProps) {
         />
       ))}
 
-      {/* piston */}
-      <g className="transition-transform duration-200 ease-[var(--ease-out)]" style={{ transform: `translateY(${top}px)` }}>
-        <rect x={(BOX_L + BOX_R) / 2 - 7} y={-120} width={14} height={120} rx={5} fill="var(--line-strong)" />
-        <rect x={BOX_L + 2} y={-14} width={BOX_R - BOX_L - 4} height={14} rx={5} fill="var(--ink-soft)" />
-        <rect x={(BOX_L + BOX_R) / 2 - 22} y={-128} width={44} height={12} rx={6} fill="var(--ink-soft)" />
+      {/* piston: the rod fades out towards the top of the scene instead of being cut off */}
+      <defs>
+        <linearGradient id={fadeId} gradientUnits="userSpaceOnUse" x1={0} y1={0} x2={0} y2={40}>
+          <stop offset="0" stopColor="white" stopOpacity={0} />
+          <stop offset="1" stopColor="white" stopOpacity={1} />
+        </linearGradient>
+        <mask id={`${fadeId}-mask`} maskUnits="userSpaceOnUse" x={0} y={0} width={SCENE.w} height={SCENE.h}>
+          <rect width={SCENE.w} height={SCENE.h} fill={`url(#${fadeId})`} />
+        </mask>
+      </defs>
+      <g mask={`url(#${fadeId}-mask)`}>
+        <g className="transition-transform duration-200 ease-[var(--ease-out)]" style={{ transform: `translateY(${top}px)` }}>
+          <rect x={(BOX_L + BOX_R) / 2 - 7} y={-200} width={14} height={200} rx={5} fill="var(--line-strong)" />
+          <rect x={BOX_L + 2} y={-14} width={BOX_R - BOX_L - 4} height={14} rx={5} fill="var(--ink-soft)" />
+        </g>
       </g>
 
       <path
@@ -109,10 +122,10 @@ export function GasVisual({ params, outputs }: SimVisualProps) {
 
       {/* thermometer */}
       <g>
-        <rect x={102} y={thermoTop} width={16} height={thermoBottom - thermoTop} rx={8} fill="var(--surface-2)" stroke="var(--line-strong)" strokeWidth={2} />
-        <rect x={106} y={thermoBottom - 6 - mercury} width={8} height={mercury} rx={4} fill={color} className="transition-[height,y] duration-200" />
-        <circle cx={110} cy={thermoBottom + 6} r={12} fill={color} stroke="var(--surface)" strokeWidth={2} />
-        <text x={92} y={thermoBottom + 11} textAnchor="end" className="fill-ink text-[14px] font-bold">
+        <rect x={thermoX - 8} y={thermoTop} width={16} height={thermoBottom - thermoTop} rx={8} fill="var(--surface-2)" stroke="var(--line-strong)" strokeWidth={2} />
+        <rect x={thermoX - 4} y={thermoBottom - 6 - mercury} width={8} height={mercury} rx={4} fill={color} className="transition-[height,y] duration-200" />
+        <circle cx={thermoX} cy={thermoBottom + 6} r={12} fill={color} stroke="var(--surface)" strokeWidth={2} />
+        <text x={thermoX - 18} y={thermoBottom + 11} textAnchor="end" className="fill-ink text-[14px] font-bold">
           {Math.round(temperature)} K
         </text>
       </g>

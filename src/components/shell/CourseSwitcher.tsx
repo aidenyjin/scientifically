@@ -9,7 +9,13 @@ import { cn } from "@/lib/cn";
 type PackOption = { id: string; title: string; subject: string; level: string };
 
 /** The course chip in the stat bar; opens a list of published courses. */
-export function CourseSwitcher({ packs, activeId }: { packs: PackOption[]; activeId: string | null }) {
+export function CourseSwitcher({
+  packs,
+  activeId,
+}: {
+  packs: PackOption[];
+  activeId: string | null;
+}) {
   const [open, setOpen] = useState(false);
   const [pending, start] = useTransition();
   const router = useRouter();
@@ -44,7 +50,7 @@ export function CourseSwitcher({ packs, activeId }: { packs: PackOption[]; activ
         aria-expanded={open}
         aria-haspopup="listbox"
         title="Switch course"
-        className="flex h-10 max-w-[170px] items-center gap-1 rounded-xl border-2 border-line px-3 text-sm font-bold whitespace-nowrap text-ink-soft transition-colors duration-150 hover:bg-surface-2"
+        className="border-line text-ink-soft hover:bg-surface-2 flex h-10 max-w-[170px] items-center gap-1 rounded-xl border-2 px-3 text-sm font-bold whitespace-nowrap transition-colors duration-150"
       >
         <span className="truncate">{active?.subject ?? "No course"}</span>
         {packs.length > 1 && <ChevronDown className="size-4 shrink-0" />}
@@ -53,7 +59,7 @@ export function CourseSwitcher({ packs, activeId }: { packs: PackOption[]; activ
         <ul
           role="listbox"
           aria-label="Courses"
-          className="absolute top-[calc(100%+8px)] left-0 z-40 w-72 origin-top-left animate-pop-in rounded-2xl border-2 border-line bg-surface p-2 shadow-pop"
+          className="animate-pop-in border-line bg-surface shadow-pop absolute top-[calc(100%+8px)] left-0 z-40 w-72 origin-top-left rounded-2xl border-2 p-2"
         >
           {packs.map((p) => (
             <li key={p.id}>
@@ -64,17 +70,17 @@ export function CourseSwitcher({ packs, activeId }: { packs: PackOption[]; activ
                 disabled={pending}
                 onClick={() => choose(p.id)}
                 className={cn(
-                  "flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left transition-colors duration-150 hover:bg-surface-2",
+                  "hover:bg-surface-2 flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left transition-colors duration-150",
                   p.id === active?.id && "bg-brand-soft",
                 )}
               >
                 <span className="min-w-0 flex-1">
-                  <span className="block truncate font-bold text-ink">{p.title}</span>
-                  <span className="block truncate text-xs font-bold text-muted">
+                  <span className="text-ink block truncate font-bold">{p.title}</span>
+                  <span className="text-muted block truncate text-xs font-bold">
                     {p.subject} · {p.level}
                   </span>
                 </span>
-                {p.id === active?.id && <Check className="size-4 text-brand" strokeWidth={3} />}
+                {p.id === active?.id && <Check className="text-brand size-4" strokeWidth={3} />}
               </button>
             </li>
           ))}

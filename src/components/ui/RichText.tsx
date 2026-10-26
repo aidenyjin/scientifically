@@ -5,7 +5,8 @@ function render(nodes: RichNode[]): ReactNode {
   return nodes.map((node, i) => {
     switch (node.kind) {
       case "text":
-        return <Fragment key={i}>{node.text}</Fragment>;
+        // Keep a number with its unit ("5 Ω", "9.8 m/s") on one line.
+        return <Fragment key={i}>{node.text.replace(/(\d) (?=[A-Za-zΩμ°%])/g, "$1\u00a0")}</Fragment>;
       case "bold":
         return (
           <strong key={i} className="font-bold">

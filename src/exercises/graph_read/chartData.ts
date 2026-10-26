@@ -38,13 +38,16 @@ export function scatterData(chart: Chart): { x: number; y: number; series: numbe
   return chart.series.map((s, i) => s.points.map(([x, y]) => ({ x, y, series: i })));
 }
 
-/** Round-numbered axes covering every plotted point. Bars always start at 0. */
-export function chartAxes(chart: Chart) {
+/**
+ * Round-numbered axes covering every plotted point. Bars always start at 0.
+ * `maxYTicks` lets short charts use fewer, roomier gridlines.
+ */
+export function chartAxes(chart: Chart, { maxYTicks = 9 }: { maxYTicks?: number } = {}) {
   const points = chart.series.flatMap((s) => s.points);
   const [xMin, xMax] = extent(points.map(([x]) => x));
   const [yMin, yMax] = extent(points.map(([, y]) => y));
   return {
     x: niceAxis(xMin, xMax, { maxTicks: 9 }),
-    y: niceAxis(yMin, yMax, { maxTicks: 9, zero: chart.kind === "bar" }),
+    y: niceAxis(yMin, yMax, { maxTicks: maxYTicks, zero: chart.kind === "bar" }),
   };
 }

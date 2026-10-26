@@ -1,5 +1,6 @@
 "use client";
 
+import { Timer } from "lucide-react";
 import { useReducedMotion } from "motion/react";
 import { useEffect, useState } from "react";
 import { Character } from "@/characters/Character";
@@ -64,7 +65,14 @@ export function LessonResults({
               Try again
             </Button>
           ) : (
-            <Button size="lg" variant="success" className="w-44" disabled={!ready} onClick={next} autoFocus>
+            <Button
+              size="lg"
+              variant="success"
+              className="w-44 focus-visible:outline-correct/50"
+              disabled={!ready}
+              onClick={next}
+              autoFocus
+            >
               {ready ? "Continue" : "Saving…"}
             </Button>
           )}
@@ -87,7 +95,7 @@ function ResultsStage({
 }) {
   const title =
     stats.mode === "practice" ? "Practice complete!" : stats.perfect ? "Perfect lesson!" : "Lesson complete!";
-  const line = reactionFor(stats.perfect ? "perfect" : "lessonComplete", "lumi", stats.firstTryCorrect + stats.total).line;
+  const line = reactionLine(stats, title);
   return (
     <div className="flex w-full max-w-[640px] flex-col items-center text-center">
       <div className="animate-pop-in">
@@ -103,6 +111,7 @@ function ResultsStage({
         <StatTile
           label="Total XP"
           color="var(--xp)"
+          labelColor="color-mix(in oklab, var(--xp) 30%, black)"
           icon={<BoltIcon size={22} />}
           value={summary?.xp.total ?? null}
           delay={120}
@@ -118,7 +127,7 @@ function ResultsStage({
         <StatTile
           label="Time"
           color="var(--gem)"
-          icon={<span className="text-lg">⏱</span>}
+          icon={<Timer className="size-[22px]" strokeWidth={2.75} aria-hidden />}
           text={formatDuration(durationMs)}
           delay={240}
         />
@@ -150,6 +159,7 @@ function ResultsStage({
 function StatTile({
   label,
   color,
+  labelColor = "white",
   icon,
   value,
   suffix = "",
@@ -158,6 +168,8 @@ function StatTile({
 }: {
   label: string;
   color: string;
+  /** Header text colour (white reads poorly on the yellow XP tile). */
+  labelColor?: string;
   icon: React.ReactNode;
   value?: number | null;
   suffix?: string;
@@ -170,7 +182,9 @@ function StatTile({
       className="animate-rise-in overflow-hidden rounded-2xl border-2"
       style={{ borderColor: color, background: color, animationDelay: `${delay}ms` }}
     >
-      <p className="py-1.5 font-display text-[13px] font-semibold tracking-wider text-white uppercase">{label}</p>
+      <p className="py-1.5 font-display text-[13px] font-semibold tracking-wider uppercase" style={{ color: labelColor }}>
+        {label}
+      </p>
       <div className="flex items-center justify-center gap-2 rounded-xl bg-surface py-4 font-display text-2xl font-bold" style={{ color }}>
         {icon}
         <span className="tabular-nums">
@@ -237,6 +251,18 @@ function Chip({ children }: { children: React.ReactNode }) {
       {children}
     </span>
   );
+}
+
+/** Lumi's line under the title, skipping any line that just repeats the title. */
+function reactionLine(stats: LessonStats, title: string): string | undefined {
+  const event = stats.perfect ? "perfect" : "lessonComplete";
+  const seed = stats.firstTryCorrect + stats.total;
+  const norm = (s: string) => s.toLowerCase().replace(/[^a-z]/g, "");
+  for (let i = 0; i < 4; i++) {
+    const { line } = reactionFor(event, "lumi", seed + i);
+    if (line && norm(line) !== norm(title)) return line;
+  }
+  return undefined;
 }
 
 function formatDuration(ms: number): string {

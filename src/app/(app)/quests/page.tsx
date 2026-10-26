@@ -18,7 +18,9 @@ export default async function QuestsPage() {
           <h1 className="mt-1 font-display text-3xl font-semibold">
             {done === quests.length ? "All done — legendary!" : `${done} of ${quests.length} complete`}
           </h1>
-          <p className="mt-1 font-semibold text-white/90">Finish quests to win gems. New quests every day.</p>
+          <p className="mt-1 font-semibold text-white/90">
+            {done === quests.length ? "Come back tomorrow for new quests." : "Finish quests to win gems. New quests every day."}
+          </p>
         </div>
         <Character id="volt" expression={done === quests.length ? "celebrate" : "happy"} size={110} animate />
       </header>

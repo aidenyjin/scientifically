@@ -28,37 +28,40 @@ export function OutfitPicker({ owned, wearing }: { owned: string[]; wearing: str
 
   return (
     <div className="flex items-center gap-6">
-      <div className="grid size-40 shrink-0 place-items-center rounded-3xl bg-brand-soft">
+      <div className="bg-brand-soft grid size-40 shrink-0 place-items-center rounded-3xl">
         <Character id="lumi" expression="happy" size={136} outfit={worn as CosmeticId[]} animate />
       </div>
       {ownedItems.length === 0 ? (
         <p className="text-ink-soft">
           No outfits yet.{" "}
-          <Link href="/shop" className="font-bold text-brand hover:underline">
+          <Link href="/shop" className="text-brand font-bold hover:underline">
             Visit the shop
           </Link>{" "}
           to buy some.
         </p>
       ) : (
-        <ul className="flex flex-wrap gap-2">
-          {ownedItems.map((c) => (
-            <li key={c.id}>
-              <button
-                type="button"
-                aria-pressed={worn.includes(c.id)}
-                onClick={() => toggle(c.id)}
-                className={cn(
-                  "pressable rounded-xl border-2 px-3 py-2 text-sm font-bold [--depth:3px]",
-                  worn.includes(c.id)
-                    ? "border-brand bg-brand-soft text-brand [--edge:var(--brand)]"
-                    : "border-line bg-surface text-ink-soft [--edge:var(--line)]",
-                )}
-              >
-                {c.name}
-              </button>
-            </li>
-          ))}
-        </ul>
+        <div className="min-w-0">
+          <p className="text-muted text-sm font-bold">Tap an item to try it on. One per slot.</p>
+          <ul className="mt-3 flex flex-wrap gap-2">
+            {ownedItems.map((c) => (
+              <li key={c.id}>
+                <button
+                  type="button"
+                  aria-pressed={worn.includes(c.id)}
+                  onClick={() => toggle(c.id)}
+                  className={cn(
+                    "pressable rounded-xl border-2 px-3 py-2 text-sm font-bold [--depth:3px]",
+                    worn.includes(c.id)
+                      ? "border-brand bg-brand-soft text-brand [--edge:var(--brand)]"
+                      : "border-line bg-surface text-ink-soft [--edge:var(--line)]",
+                  )}
+                >
+                  {c.name}
+                </button>
+              </li>
+            ))}
+          </ul>
+        </div>
       )}
     </div>
   );

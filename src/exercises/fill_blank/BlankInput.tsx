@@ -43,7 +43,8 @@ export const BlankInput = forwardRef<
         autoCorrect="off"
         autoCapitalize="off"
         spellCheck={false}
-        style={{ width: `calc(${widthCh + 1}ch + 1.75rem)` }}
+        // Grows with what's typed (up to a sensible cap) so a long guess is never clipped.
+        style={{ width: `calc(${Math.min(Math.max(widthCh, value.length), 28) + 1}ch + 1.75rem)` }}
         className={cn(
           "h-11 max-w-full rounded-xl border-2 border-b-4 px-3 text-center font-display text-[20px] font-semibold transition-colors duration-150",
           inputClasses[state],

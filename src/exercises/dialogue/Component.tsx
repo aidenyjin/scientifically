@@ -4,6 +4,7 @@ import { useReducedMotion } from "motion/react";
 import { useEffect, useMemo, useState } from "react";
 import type { ExerciseProps } from "@/content/types";
 import { digitKeys, useHotkeys } from "@/lib/keyboard";
+import { cn } from "@/lib/cn";
 import { shuffledOrder } from "@/lib/rng";
 import { ChoiceOption, type ChoiceState } from "../_shared/ChoiceOption";
 import { Bubble } from "./Bubble";
@@ -61,6 +62,10 @@ export function DialogueView({
   };
 
   const visible = done ? lines.length : step;
+  const even = question.options.length % 2 === 0;
+  const twoColumns = even && question.options.every((o) => o.length <= 44);
+  // Longer options still pair up on short screens (two-line cards beat scrolling past the footer).
+  const twoColumnsWhenShort = even && question.options.every((o) => o.length <= 64);
 
   return (
     <div className="grid gap-5">
@@ -83,11 +88,20 @@ export function DialogueView({
       </ol>
 
       {done && (
-        <div role="radiogroup" aria-label="Answer options" className="grid gap-2.5">
+        <div
+          role="radiogroup"
+          aria-label="Answer options"
+          // Short options pair up so the chat and every answer fit above the footer on a laptop.
+          className={cn(
+            "grid gap-2.5",
+            twoColumns && "sm:grid-cols-2",
+            twoColumnsWhenShort && "sm:[@media(max-height:799px)]:grid-cols-2",
+          )}
+        >
           {order.map((originalIndex, position) => (
             <div
               key={originalIndex}
-              className="animate-rise-in"
+              className="animate-rise-in grid"
               style={{ animationDelay: `${position * OPTION_STAGGER_MS}ms` }}
             >
               <ChoiceOption

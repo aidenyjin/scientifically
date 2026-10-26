@@ -4,7 +4,6 @@ import {
   chestReward,
   chestSeed,
   dailyGoalStatus,
-  evaluateAchievements,
   GAME,
   lessonXp,
   purchase,
@@ -22,7 +21,7 @@ import { now as clockNow } from "@/lib/clock";
 import { db } from "@/server/db";
 import { findLesson, flatLessons, getPack } from "@/server/repo/packs";
 import type { CurrentUser } from "@/server/repo/users";
-import { achievementTotals } from "./achievements";
+import { unlockNewAchievements } from "./achievements";
 import { ensureMembership } from "./leagues";
 import { syncPlayer, xpToday } from "./player";
 import { getQuestsToday } from "./quests";
@@ -189,20 +188,8 @@ export async function completeLessonForUser(
   ]);
 
   // 7. Achievements (after the writes above so totals include this lesson)
-  const totals = await achievementTotals(user.id, activity.state.longest);
-  const unlockedRows = await db.achievementUnlock.findMany({ where: { userId: user.id } });
-  const newly = evaluateAchievements(
-    totals,
-    unlockedRows.map((u) => ({ id: u.achievementId, tier: u.tier })),
-  );
+  const newly = await unlockNewAchievements(user.id, activity.state.longest, now);
   const achievementGems = newly.reduce((sum, a) => sum + a.rewardGems, 0);
-  if (newly.length) {
-    await db.$transaction(
-      newly.map((a) =>
-        db.achievementUnlock.create({ data: { userId: user.id, achievementId: a.id, tier: a.tier, unlockedAt: now } }),
-      ),
-    );
-  }
 
   // 8. Wallet
   const gemsEarned = baseGems + chestGems + questGems + achievementGems;
@@ -285,5 +272,10 @@ export async function buyItem(user: CurrentUser, itemId: string, now: Date = clo
     }),
     db.purchase.create({ data: { userId: user.id, itemId: item.id, cost: item.price, at: now } }),
   ]);
-  return { ok: true as const, wallet: w, item };
+  // Spending gems can unlock achievements (e.g. "Research Grant"); pay out their rewards now.
+  const newly = await unlockNewAchievements(user.id, player.streakState.longest, now);
+  const reward = newly.reduce((sum, a) => sum + a.rewardGems, 0);
+  const wallet = reward > 0 ? { ...w, gems: w.gems + reward } : w;
+  if (reward > 0) await db.wallet.update({ where: { userId: user.id }, data: { gems: { increment: reward } } });
+  return { ok: true as const, wallet, item, achievements: newly.map((a) => a.label) };
 }

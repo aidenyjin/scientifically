@@ -15,7 +15,10 @@ export function AchievementGrid({ items }: { items: ProfileView["achievements"] 
           >
             <span aria-hidden>{a.icon}</span>
             {a.tier > 0 && (
-              <span className="absolute -bottom-1.5 rounded-full bg-xp px-1.5 font-display text-[11px] font-bold text-white">
+              <span
+                className="absolute -bottom-2 rounded-full bg-streak px-2 font-display text-xs leading-5 font-bold text-white ring-2 ring-surface"
+                aria-label={`Tier ${a.tier}`}
+              >
                 {"I".repeat(Math.min(3, a.tier)) + (a.tier > 3 ? `+${a.tier - 3}` : "")}
               </span>
             )}
@@ -24,7 +27,7 @@ export function AchievementGrid({ items }: { items: ProfileView["achievements"] 
             <div className="flex items-baseline justify-between gap-2">
               <p className="font-display text-lg font-semibold">{a.title}</p>
               <span className="text-sm font-bold text-muted tabular-nums">
-                {a.complete ? "Complete" : `${a.value}/${a.nextThreshold}`}
+                {a.complete || a.nextThreshold === null ? "Complete" : `${Math.min(a.value, a.nextThreshold)}/${a.nextThreshold}`}
               </span>
             </div>
             <ProgressBar value={a.progress} color="var(--xp)" height={12} className="mt-1.5" label={`${a.title} progress`} />

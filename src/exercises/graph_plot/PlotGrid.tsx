@@ -6,7 +6,7 @@ import { toUnicodeText } from "../_shared/unicodeText";
 import { cellValue, gridSize, labelStride, type Cell } from "./grid";
 import type { GraphPlot } from "./schema";
 
-export const VIEW = { w: 560, h: 360, left: 66, right: 18, top: 16, bottom: 54 } as const;
+export const VIEW = { w: 560, h: 360, left: 72, right: 18, top: 16, bottom: 60 } as const;
 const PLOT_W = VIEW.w - VIEW.left - VIEW.right;
 const PLOT_H = VIEW.h - VIEW.top - VIEW.bottom;
 const EASE = [0.23, 1, 0.32, 1] as const;
@@ -48,7 +48,7 @@ function Grid({ axes }: { axes: Axes }) {
           <g key={`x${i}`}>
             <line x1={px} x2={px} y1={VIEW.top} y2={VIEW.top + PLOT_H} stroke="var(--line)" strokeWidth={i % xStride === 0 ? 1.5 : 1} />
             {i % xStride === 0 && (
-              <text x={px} y={VIEW.top + PLOT_H + 20} textAnchor="middle" className="fill-muted text-[13px] font-bold">
+              <text x={px} y={VIEW.top + PLOT_H + 24} textAnchor="middle" className="fill-muted text-[14.5px] font-bold">
                 {label(cellValue(axes, { i, j: 0 })[0])}
               </text>
             )}
@@ -61,7 +61,7 @@ function Grid({ axes }: { axes: Axes }) {
           <g key={`y${j}`}>
             <line x1={VIEW.left} x2={VIEW.left + PLOT_W} y1={py} y2={py} stroke="var(--line)" strokeWidth={j % yStride === 0 ? 1.5 : 1} />
             {j % yStride === 0 && (
-              <text x={VIEW.left - 10} y={py + 4.5} textAnchor="end" className="fill-muted text-[13px] font-bold">
+              <text x={VIEW.left - 16} y={py + 5} textAnchor="end" className="fill-muted text-[14.5px] font-bold">
                 {label(cellValue(axes, { i: 0, j })[1])}
               </text>
             )}
@@ -70,13 +70,13 @@ function Grid({ axes }: { axes: Axes }) {
       })}
       <line x1={x0} x2={x0} y1={VIEW.top} y2={VIEW.top + PLOT_H} stroke="var(--line-strong)" strokeWidth={2} strokeLinecap="round" />
       <line x1={VIEW.left} x2={VIEW.left + PLOT_W} y1={y0} y2={y0} stroke="var(--line-strong)" strokeWidth={2} strokeLinecap="round" />
-      <text x={VIEW.left + PLOT_W / 2} y={VIEW.h - 8} textAnchor="middle" className="fill-ink-soft text-[14px] font-bold">
+      <text x={VIEW.left + PLOT_W / 2} y={VIEW.h - 8} textAnchor="middle" className="fill-ink-soft text-[15px] font-bold">
         {toUnicodeText(axes.xLabel)}
       </text>
       <text
         transform={`translate(18 ${VIEW.top + PLOT_H / 2}) rotate(-90)`}
         textAnchor="middle"
-        className="fill-ink-soft text-[14px] font-bold"
+        className="fill-ink-soft text-[15px] font-bold"
       >
         {toUnicodeText(axes.yLabel)}
       </text>
@@ -117,7 +117,7 @@ export function PlotGrid({
   const targetPx = targets ? [...targets].sort((a, b) => a[0] - b[0]).map(([x, y]) => project(axes, x, y)) : [];
   const [cx, cy] = project(axes, ...cellValue(axes, cursor));
   const [cursorX, cursorY] = cellValue(axes, cursor);
-  const tagRight = cx < VIEW.left + PLOT_W - 90;
+  const tagRight = cx < VIEW.left + PLOT_W - 100;
   const tagUp = cy > VIEW.top + 34;
 
   return (
@@ -145,8 +145,8 @@ export function PlotGrid({
           <line x1={VIEW.left} x2={VIEW.left + PLOT_W} y1={cy} y2={cy} stroke="var(--brand)" strokeWidth={1.5} strokeDasharray="3 5" opacity={0.55} />
           <circle cx={cx} cy={cy} r={12} fill="var(--brand)" fillOpacity={0.12} stroke="var(--brand)" strokeWidth={2} />
           <g transform={`translate(${cx + (tagRight ? 16 : -16)} ${cy + (tagUp ? -16 : 16)})`}>
-            <rect x={tagRight ? 0 : -76} y={-13} width={76} height={26} rx={9} fill="var(--surface)" stroke="var(--line-strong)" strokeWidth={1.5} />
-            <text x={tagRight ? 38 : -38} y={5} textAnchor="middle" className="fill-ink text-[13px] font-bold tabular-nums">
+            <rect x={tagRight ? 0 : -86} y={-13} width={86} height={26} rx={9} fill="var(--surface)" stroke="var(--line-strong)" strokeWidth={1.5} />
+            <text x={tagRight ? 43 : -43} y={5} textAnchor="middle" className="fill-ink text-[14px] font-bold tabular-nums">
               ({label(cursorX)}, {label(cursorY)})
             </text>
           </g>

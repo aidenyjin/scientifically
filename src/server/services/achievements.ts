@@ -1,5 +1,5 @@
 import "server-only";
-import { achievementProgress, type AchievementTotals } from "@/game";
+import { achievementProgress, evaluateAchievements, type AchievementTotals } from "@/game";
 import { db } from "@/server/db";
 import { getPack } from "@/server/repo/packs";
 import { totalXp } from "./player";
@@ -48,4 +48,20 @@ export async function getAchievementsView(userId: string, longestStreak: number)
     totals,
     unlocked.map((u) => ({ id: u.achievementId, tier: u.tier })),
   );
+}
+
+/** Record any newly reached achievement tiers and return them (caller adds the reward gems). */
+export async function unlockNewAchievements(userId: string, longestStreak: number, now: Date) {
+  const totals = await achievementTotals(userId, longestStreak);
+  const unlockedRows = await db.achievementUnlock.findMany({ where: { userId } });
+  const newly = evaluateAchievements(
+    totals,
+    unlockedRows.map((u) => ({ id: u.achievementId, tier: u.tier })),
+  );
+  if (newly.length) {
+    await db.$transaction(
+      newly.map((a) => db.achievementUnlock.create({ data: { userId, achievementId: a.id, tier: a.tier, unlockedAt: now } })),
+    );
+  }
+  return newly;
 }

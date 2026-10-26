@@ -14,21 +14,23 @@ export default async function GeneratePage() {
     <div className="mx-auto grid max-w-3xl gap-6">
       <header>
         <h1 className="font-display text-3xl font-semibold">Generate a course</h1>
-        <p className="mt-1 text-ink-soft">
-          The AI writes an outline, then each lesson. Everything is validated; problems are flagged for review. The result is
-          saved as a <b>draft</b> — nothing reaches learners until you publish it.
+        <p className="text-ink-soft mt-1">
+          The AI writes an outline, then each lesson. Everything is validated; problems are flagged
+          for review. The result is saved as a <b>draft</b> — nothing reaches learners until you
+          publish it.
         </p>
       </header>
       <div
         className={
           status.ready
-            ? "rounded-2xl border-2 border-line bg-surface px-4 py-3 text-sm font-semibold text-ink-soft"
-            : "rounded-2xl border-2 border-wrong/40 bg-wrong-soft px-4 py-3 text-sm font-bold text-wrong-ink"
+            ? "border-line bg-surface text-ink-soft rounded-2xl border-2 px-4 py-3 text-sm font-semibold"
+            : "border-wrong/40 bg-wrong-soft text-wrong-ink rounded-2xl border-2 px-4 py-3 text-sm font-bold"
         }
       >
         {status.ready ? (
           <>
-            Using <b className="text-ink">{status.provider}</b> · model <code className="text-ink">{status.model}</code>
+            Using <b className="text-ink">{status.provider}</b> · model{" "}
+            <code className="text-ink">{status.model}</code>
             {status.isMock && " (mock provider: builds a pack from examples, no API calls)"}
           </>
         ) : (

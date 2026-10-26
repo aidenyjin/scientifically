@@ -3,7 +3,13 @@
 import { useEffect, useState } from "react";
 
 /** "Next heart in 2:14:05", ticking each second. */
-export function HeartTimer({ nextHeartAt, className }: { nextHeartAt: string | null; className?: string }) {
+export function HeartTimer({
+  nextHeartAt,
+  className,
+}: {
+  nextHeartAt: string | null;
+  className?: string;
+}) {
   const [nowMs, setNowMs] = useState<number | null>(null);
   useEffect(() => {
     if (!nextHeartAt) return;
@@ -16,10 +22,11 @@ export function HeartTimer({ nextHeartAt, className }: { nextHeartAt: string | n
     };
   }, [nextHeartAt]);
 
-  if (!nextHeartAt) return <p className={className ?? "text-sm font-bold text-muted"}>Hearts are full</p>;
+  if (!nextHeartAt)
+    return <p className={className ?? "text-muted text-sm font-bold"}>Hearts are full</p>;
   const left = nowMs === null ? null : Math.max(0, new Date(nextHeartAt).getTime() - nowMs);
   return (
-    <p className={className ?? "text-sm font-bold text-muted"}>
+    <p className={className ?? "text-muted text-sm font-bold"}>
       Next heart in <span className="tabular-nums">{left === null ? "…" : formatHms(left)}</span>
     </p>
   );

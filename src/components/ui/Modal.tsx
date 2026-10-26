@@ -30,11 +30,29 @@ export function Modal({
       if (e.key === "Escape") {
         e.stopPropagation();
         onClose();
+        return;
+      }
+      // Keep Tab inside the dialog.
+      if (e.key === "Tab" && panelRef.current) {
+        const focusable = panelRef.current.querySelectorAll<HTMLElement>(
+          'a[href], button:not([disabled]), input:not([disabled]), textarea:not([disabled]), select:not([disabled]), [tabindex]:not([tabindex="-1"])',
+        );
+        if (focusable.length === 0) return;
+        const first = focusable[0];
+        const last = focusable[focusable.length - 1];
+        if (e.shiftKey && (document.activeElement === first || document.activeElement === panelRef.current)) {
+          e.preventDefault();
+          last.focus();
+        } else if (!e.shiftKey && document.activeElement === last) {
+          e.preventDefault();
+          first.focus();
+        }
       }
     };
     window.addEventListener("keydown", onKey, true);
     const prev = document.activeElement as HTMLElement | null;
-    panelRef.current?.focus();
+    // Honour a child's autoFocus; otherwise focus the panel itself.
+    if (!panelRef.current?.contains(document.activeElement)) panelRef.current?.focus();
     return () => {
       window.removeEventListener("keydown", onKey, true);
       prev?.focus?.();

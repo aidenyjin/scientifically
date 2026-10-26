@@ -1,6 +1,7 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { Check } from "lucide-react";
+import { useEffect, useRef, useState, useTransition } from "react";
 import { buyItemAction } from "@/app/(app)/actions";
 import { GemIcon } from "@/components/icons";
 import { Button } from "@/components/ui/Button";
@@ -13,16 +14,23 @@ export interface ShopCardItem {
   description: string;
   price: number;
   icon: string;
-  /** Label replacing the price when it can't be bought (e.g. "Owned"), or null to show the price. */
-  blocked: string | null;
+  /**
+   * Why it can't be bought right now, shown instead of the buy button
+   * ("owned" gets a green tick, "neutral" a grey pill), or null to show the price.
+   */
+  blocked: { label: string; tone: "owned" | "neutral" } | null;
   disabled: boolean;
   /** Small status line, e.g. "Equipped 1 / 2". */
   status?: string;
+  /** "active" highlights the status (e.g. a running boost). */
+  statusTone?: "active";
 }
 
 export function ShopItemCard({ item, preview }: { item: ShopCardItem; preview?: React.ReactNode }) {
   const [pending, start] = useTransition();
   const [flash, setFlash] = useState<{ ok: boolean; text: string } | null>(null);
+  const timer = useRef<number | undefined>(undefined);
+  useEffect(() => () => window.clearTimeout(timer.current), []);
 
   const buy = () =>
     start(async () => {
@@ -34,12 +42,15 @@ export function ShopItemCard({ item, preview }: { item: ShopCardItem; preview?: 
         play("wrong");
         setFlash({ ok: false, text: result.error });
       }
-      window.setTimeout(() => setFlash(null), 2400);
+      window.clearTimeout(timer.current);
+      timer.current = window.setTimeout(() => setFlash(null), 2400);
     });
+
+  const statusText = flash?.text ?? item.status ?? "";
 
   return (
     <li className="flex items-center gap-5 border-b-2 border-line py-5 last:border-b-0">
-      <div className="grid size-20 shrink-0 place-items-center rounded-2xl bg-surface-2 text-[40px]">
+      <div className="grid size-20 shrink-0 place-items-center overflow-hidden rounded-2xl bg-surface-2 text-[40px] leading-none">
         {preview ?? <span aria-hidden>{item.icon}</span>}
       </div>
       <div className="min-w-0 flex-1">
@@ -48,26 +59,41 @@ export function ShopItemCard({ item, preview }: { item: ShopCardItem; preview?: 
         <p
           aria-live="polite"
           className={cn(
-            "mt-1 min-h-5 text-sm font-bold",
-            flash ? (flash.ok ? "animate-rise-in text-correct-ink" : "animate-shake text-wrong-ink") : "text-muted",
+            "text-sm font-bold empty:hidden",
+            flash
+              ? flash.ok
+                ? "animate-rise-in text-correct-ink"
+                : "animate-shake text-wrong-ink"
+              : item.statusTone === "active"
+                ? "text-streak"
+                : "text-muted",
+            statusText && "mt-1",
           )}
         >
-          {flash?.text ?? item.status ?? ""}
+          {statusText}
         </p>
       </div>
-      <Button
-        variant="secondary"
-        className={cn("min-w-32", !item.disabled && "text-gem")}
-        disabled={pending || item.disabled}
-        onClick={buy}
-        aria-label={`Buy ${item.name} for ${item.price} gems`}
-      >
-        {item.blocked ?? (
-          <>
-            <GemIcon size={20} /> {item.price}
-          </>
-        )}
-      </Button>
+      {item.blocked ? (
+        <span
+          className={cn(
+            "inline-flex h-11 min-w-32 shrink-0 items-center justify-center gap-1.5 rounded-2xl px-4 font-display text-[15px] font-semibold tracking-wide uppercase",
+            item.blocked.tone === "owned" ? "bg-correct-soft text-correct-ink" : "bg-surface-2 text-muted",
+          )}
+        >
+          {item.blocked.tone === "owned" && <Check className="size-4" strokeWidth={3.5} />}
+          {item.blocked.label}
+        </span>
+      ) : (
+        <Button
+          variant="secondary"
+          className={cn("min-w-32 shrink-0", !item.disabled && !pending && "text-gem")}
+          disabled={pending || item.disabled}
+          onClick={buy}
+          aria-label={`Buy ${item.name} for ${item.price} gems`}
+        >
+          <GemIcon size={20} /> {item.price}
+        </Button>
+      )}
     </li>
   );
 }

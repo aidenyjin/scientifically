@@ -21,12 +21,14 @@ export default async function ProfilePage() {
   return (
     <div className="grid gap-6">
       <header className="flex items-center gap-5">
-        <div className="grid size-20 place-items-center rounded-full bg-brand font-display text-3xl font-bold text-white">
+        <div className="grid size-20 shrink-0 place-items-center rounded-full bg-brand font-display text-3xl font-bold text-white">
           {p.name.slice(0, 1).toUpperCase()}
         </div>
         <div className="min-w-0 flex-1">
-          <h1 className="font-display text-3xl font-semibold">{p.name}</h1>
-          <p className="text-sm font-bold text-muted">
+          <h1 className="truncate font-display text-3xl font-semibold" title={p.name}>
+            {p.name}
+          </h1>
+          <p className="truncate text-sm font-bold text-muted">
             {p.isGuest ? "Guest" : p.email} · Joined {joined}
           </p>
           <div className="mt-2 flex items-center gap-3">
@@ -55,11 +57,13 @@ export default async function ProfilePage() {
       <Card className="grid grid-cols-[1fr_300px] items-center gap-8">
         <div className="flex flex-col items-center text-center">
           <FlameIcon size={88} muted={p.streak === 0} />
-          <p className="mt-1 font-display text-5xl font-bold text-streak tabular-nums">{p.streak}</p>
+          <p className={`mt-1 font-display text-5xl font-bold tabular-nums ${p.streak > 0 ? "text-streak" : "text-muted"}`}>{p.streak}</p>
           <p className="font-display text-lg font-semibold text-ink">day streak</p>
-          <p className="mt-3 text-sm font-bold text-muted">
-            Longest {p.longestStreak} · {p.freezes} freeze{p.freezes === 1 ? "" : "s"} · {p.minutes} min learning
-          </p>
+          <dl className="mt-4 grid w-full grid-cols-3 gap-2 text-center">
+            <StreakFact label="Longest" value={p.longestStreak} />
+            <StreakFact label={p.freezes === 1 ? "Freeze" : "Freezes"} value={p.freezes} />
+            <StreakFact label="Minutes" value={p.minutes} />
+          </dl>
         </div>
         <StreakCalendar days={p.calendar} monthLabel={monthLabel} />
       </Card>
@@ -91,6 +95,15 @@ export default async function ProfilePage() {
           />
         </div>
       </Card>
+    </div>
+  );
+}
+
+function StreakFact({ label, value }: { label: string; value: number }) {
+  return (
+    <div className="rounded-xl bg-surface-2 px-2 py-1.5">
+      <dt className="text-xs font-bold text-muted">{label}</dt>
+      <dd className="font-display text-base font-bold text-ink tabular-nums">{value}</dd>
     </div>
   );
 }

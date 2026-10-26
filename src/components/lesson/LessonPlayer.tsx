@@ -8,6 +8,7 @@ import { reactionFor } from "@/characters/reactions";
 import type { Expression } from "@/characters/types";
 import { GemIcon, HeartIcon } from "@/components/icons";
 import { Button } from "@/components/ui/Button";
+import { Kbd } from "@/components/ui/Kbd";
 import { Modal } from "@/components/ui/Modal";
 import { RichText } from "@/components/ui/RichText";
 import { isGraded, type Exercise } from "@/content/registry";
@@ -17,6 +18,7 @@ import { useLessonStore } from "@/engine/store";
 import type { CompletionSummary, LessonCompletionInput, RefillResult } from "@/engine/summary";
 import { GAME } from "@/game/config";
 import { useHotkeys } from "@/lib/keyboard";
+import { cn } from "@/lib/cn";
 import { hashString } from "@/lib/rng";
 import { play } from "@/sound/sfx";
 import { FeedbackFooter } from "./FeedbackFooter";
@@ -39,7 +41,8 @@ export interface LessonPlayerProps {
   onComplete(input: LessonCompletionInput): Promise<CompletionSummary>;
   /** Called when the learner quits or fails, so lost hearts are saved. */
   onAbandon(input: { heartsLost: number }): Promise<void>;
-  onRefillHearts(): Promise<RefillResult>;
+  /** Buy a refill; heartsLost = hearts lost this lesson that the server doesn't know about yet. */
+  onRefillHearts(input: { heartsLost: number }): Promise<RefillResult>;
 }
 
 export function LessonPlayer(props: LessonPlayerProps) {
@@ -53,7 +56,10 @@ export function LessonPlayer(props: LessonPlayerProps) {
   const [saveError, setSaveError] = useState<string | null>(null);
   const [durationMs, setDurationMs] = useState(0);
   const [refilling, startRefill] = useTransition();
+  const [refillError, setRefillError] = useState<string | null>(null);
   const completedRef = useRef(false);
+  const mainRef = useRef<HTMLElement>(null);
+  const [scrolledUnder, setScrolledUnder] = useState(false);
 
   useEffect(() => {
     if (process.env.NODE_ENV === "development" || process.env.NEXT_PUBLIC_E2E === "1") {
@@ -61,11 +67,20 @@ export function LessonPlayer(props: LessonPlayerProps) {
     }
   }, []);
 
+  // Start (or restart) only when the session itself changes. A server re-render
+  // (dev hot reload, router.refresh, regenerated hearts) hands us new prop
+  // objects with the same content, and must not throw away a lesson in progress.
+  const sessionKey = `${props.lessonId}|${mode}|${exercises.map((e) => e.id).join(",")}`;
+  const sessionRef = useRef({ exercises, mode, initialHearts });
   useEffect(() => {
-    useLessonStore.getState().start(exercises, { mode, hearts: initialHearts });
+    sessionRef.current = { exercises, mode, initialHearts };
+  });
+  useEffect(() => {
+    const session = sessionRef.current;
+    useLessonStore.getState().start(session.exercises, { mode: session.mode, hearts: session.initialHearts });
     completedRef.current = false;
     return () => useLessonStore.getState().reset();
-  }, [exercises, mode, initialHearts]);
+  }, [sessionKey]);
 
   const exercise = lesson ? currentExercise(lesson) : null;
   const graded = exercise ? isGraded(exercise) : true;
@@ -106,6 +121,23 @@ export function LessonPlayer(props: LessonPlayerProps) {
       .catch(() => setSaveError("We couldn't save this lesson. Check your connection and try again."));
   }, [lesson, mode, props]);
 
+  // Lift the footer with a shadow while exercise content continues below it,
+  // so a tall exercise never looks like it ends at the footer's edge.
+  useEffect(() => {
+    const main = mainRef.current;
+    if (!main) return;
+    const measure = () => setScrolledUnder(main.scrollHeight - main.scrollTop - main.clientHeight > 4);
+    measure();
+    main.addEventListener("scroll", measure, { passive: true });
+    const resize = new ResizeObserver(measure);
+    resize.observe(main);
+    if (main.firstElementChild) resize.observe(main.firstElementChild);
+    return () => {
+      main.removeEventListener("scroll", measure);
+      resize.disconnect();
+    };
+  }, [lesson?.position, status]);
+
   const onChange = useCallback((response: unknown) => useLessonStore.getState().respond(response), []);
 
   const doCheck = useCallback(() => {
@@ -139,6 +171,40 @@ export function LessonPlayer(props: LessonPlayerProps) {
   }, [props, router]);
 
   const modalOpen = quitOpen || status === "failed";
+  const failed = status === "failed";
+  const keepLearningRef = useRef<HTMLButtonElement>(null);
+  const refillRef = useRef<HTMLButtonElement>(null);
+  const noThanksRef = useRef<HTMLButtonElement>(null);
+
+  // The Modal focuses its panel when it opens; move focus on to the main action
+  // (this effect runs after the child Modal's), so Enter/Space work right away.
+  useEffect(() => {
+    if (quitOpen) keepLearningRef.current?.focus();
+  }, [quitOpen]);
+  useEffect(() => {
+    if (!failed) return;
+    const refill = refillRef.current;
+    (refill && !refill.disabled ? refill : noThanksRef.current)?.focus();
+  }, [failed]);
+
+  // While a dialog is open, keys must not reach the exercise behind it (digits
+  // would pick answers, Backspace would remove tiles...). Stopping propagation
+  // at the window's capture phase keeps default actions, so Enter/Space still
+  // press the focused dialog button and Tab still moves focus.
+  useEffect(() => {
+    if (!modalOpen) return;
+    const block = (event: KeyboardEvent) => {
+      if (event.key !== "Escape" && event.key !== "Tab") event.stopPropagation();
+    };
+    window.addEventListener("keydown", block, true);
+    return () => window.removeEventListener("keydown", block, true);
+  }, [modalOpen]);
+
+  // Opening the hint (by click or H) records it for the engine.
+  const toggleHint = () => {
+    if (!hintOpen) useLessonStore.getState().hint();
+    setHintOpen(!hintOpen);
+  };
 
   useHotkeys(
     {
@@ -149,7 +215,9 @@ export function LessonPlayer(props: LessonPlayerProps) {
         else if (s.status === "correct" || s.status === "incorrect") doContinue();
       },
       Escape: () => setQuitOpen(true),
-      h: () => exercise?.hint && status === "answering" && setHintOpen((v) => !v),
+      h: () => {
+        if (exercise?.hint && status === "answering") toggleHint();
+      },
     },
     { enabled: !modalOpen && status !== "complete", allowInInputs: ["Enter", "Escape"] },
   );
@@ -187,27 +255,42 @@ export function LessonPlayer(props: LessonPlayerProps) {
     <div className="flex h-dvh flex-col bg-bg">
       <LessonTopBar progress={progress(lesson)} hearts={lesson.hearts} combo={lesson.combo} onQuit={() => setQuitOpen(true)} />
 
-      <main className="flex min-h-0 flex-1 justify-center overflow-y-auto px-8 py-8">
+      <main
+        ref={mainRef}
+        className="flex min-h-0 flex-1 justify-center overflow-y-auto px-8 py-8 [scrollbar-gutter:stable_both-edges] [@media(max-height:840px)]:py-5"
+      >
         {exercise && (
-          <div key={`${lesson.position}-${exercise.id}`} className="flex w-full max-w-[720px] animate-rise-in flex-col gap-7">
-            <div className="flex items-start justify-between gap-4">
+          <div
+            key={`${lesson.position}-${exercise.id}`}
+            className="flex w-full max-w-[720px] animate-rise-in flex-col gap-7 [@media(max-height:840px)]:gap-5"
+          >
+            <div className={cn("flex justify-between gap-4", exercise.characterId ? "items-center" : "items-start")}>
               <PromptHeader exercise={exercise} expression={expression} />
-              {exercise.hint && status === "answering" && (
+              {exercise.hint && (
+                // Stays in the layout after checking (just hidden) so the prompt doesn't reflow.
                 <button
                   type="button"
-                  onClick={() => {
-                    setHintOpen((v) => !v);
-                    if (!hintOpen) useLessonStore.getState().hint();
-                  }}
+                  onClick={toggleHint}
                   aria-expanded={hintOpen}
-                  className="mt-1 flex shrink-0 items-center gap-1.5 rounded-xl px-3 py-2 text-sm font-bold text-brand transition-colors duration-150 hover:bg-brand-soft"
+                  aria-keyshortcuts="H"
+                  disabled={status !== "answering"}
+                  className={cn(
+                    "flex shrink-0 items-center gap-1.5 rounded-xl px-3 py-2 text-sm font-bold text-brand transition-colors duration-150 hover:bg-brand-soft",
+                    exercise.characterId ? "mb-6" : "mt-1",
+                    hintOpen && "bg-brand-soft",
+                    status !== "answering" && "invisible",
+                  )}
                 >
-                  <Lightbulb className="size-4" /> Hint <span className="text-xs text-muted">H</span>
+                  <Lightbulb className="size-4" strokeWidth={2.5} /> Hint <Kbd className="h-5 min-w-5 text-[11px]">H</Kbd>
                 </button>
               )}
             </div>
-            {hintOpen && exercise.hint && (
-              <div className="animate-pop-in rounded-2xl border-2 border-dashed border-brand/40 bg-brand-soft px-4 py-3 text-[15px] font-semibold text-ink [transform-origin:top_right]">
+            {hintOpen && exercise.hint && status === "answering" && (
+              <div
+                role="note"
+                className="-mt-2 flex animate-pop-in items-start gap-2.5 rounded-2xl border-2 border-dashed border-brand/40 bg-brand-soft px-4 py-3 text-[15px] font-semibold text-ink [transform-origin:top_right] [@media(max-height:840px)]:-mt-1"
+              >
+                <Lightbulb className="mt-0.5 size-4 shrink-0 text-brand" strokeWidth={2.5} aria-hidden />
                 <RichText text={exercise.hint} />
               </div>
             )}
@@ -233,6 +316,7 @@ export function LessonPlayer(props: LessonPlayerProps) {
           onCheck={doCheck}
           onSkip={doSkip}
           onContinue={doContinue}
+          raised={scrolledUnder}
         />
       )}
 
@@ -242,7 +326,7 @@ export function LessonPlayer(props: LessonPlayerProps) {
           <h2 className="mt-3 font-display text-2xl font-semibold">Wait, don&apos;t go!</h2>
           <p className="mt-2 text-ink-soft">You&apos;ll lose your progress in this lesson if you quit now.</p>
           <div className="mt-6 grid w-full gap-3">
-            <Button size="lg" block onClick={() => setQuitOpen(false)} autoFocus>
+            <Button ref={keepLearningRef} size="lg" block onClick={() => setQuitOpen(false)}>
               Keep learning
             </Button>
             <Button variant="ghost" size="lg" block className="text-wrong" onClick={quit}>
@@ -264,23 +348,47 @@ export function LessonPlayer(props: LessonPlayerProps) {
           </div>
           <div className="mt-6 grid w-full gap-3">
             <Button
+              ref={refillRef}
               variant="gem"
               size="lg"
               block
               disabled={gems < GAME.hearts.refillCost || refilling}
               onClick={() =>
                 startRefill(async () => {
-                  const result = await props.onRefillHearts();
-                  if (result.ok) {
-                    setGems(result.gems);
-                    useLessonStore.getState().refill(result.hearts);
+                  setRefillError(null);
+                  try {
+                    const heartsLost = useLessonStore.getState().lesson?.heartsLost ?? 0;
+                    const result = await props.onRefillHearts({ heartsLost });
+                    if (result.ok) {
+                      setGems(result.gems);
+                      useLessonStore.getState().refill(result.hearts);
+                    } else {
+                      setGems(result.gems);
+                      setRefillError(result.error ?? "Couldn't refill your hearts. Try again.");
+                    }
+                  } catch {
+                    setRefillError("Couldn't reach the server. Check your connection and try again.");
                   }
                 })
               }
             >
-              Refill for <GemIcon size={20} /> {GAME.hearts.refillCost}
+              {refilling ? (
+                "Refilling…"
+              ) : (
+                <>
+                  Refill for
+                  <span className="inline-flex items-center gap-1 rounded-full bg-white px-2 py-0.5 text-gem-dark">
+                    <GemIcon size={18} /> {GAME.hearts.refillCost}
+                  </span>
+                </>
+              )}
             </Button>
-            <Button variant="ghost" size="lg" block onClick={quit}>
+            {refillError && (
+              <p role="alert" className="animate-rise-in text-sm font-bold text-wrong-ink">
+                {refillError}
+              </p>
+            )}
+            <Button ref={noThanksRef} variant="ghost" size="lg" block onClick={quit}>
               No thanks
             </Button>
             <p className="text-xs font-semibold text-muted">

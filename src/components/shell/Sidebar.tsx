@@ -20,9 +20,13 @@ export function Sidebar() {
   return (
     <nav
       aria-label="Main"
-      className="sticky top-0 flex h-dvh w-[88px] shrink-0 flex-col border-r-2 border-line px-3 py-6 xl:w-[248px] xl:px-4"
+      className="border-line sticky top-0 flex h-dvh w-[88px] shrink-0 flex-col border-r-2 px-3 py-6 xl:w-[248px] xl:px-4"
     >
-      <Link href="/learn" className="mb-8 flex items-center gap-2 px-2.5" aria-label="Scientifically home">
+      <Link
+        href="/learn"
+        className="mb-8 flex items-center gap-2 px-2.5"
+        aria-label="Scientifically home"
+      >
         <Logo />
       </Link>
       <ul className="grid gap-1.5">
@@ -32,16 +36,17 @@ export function Sidebar() {
             <li key={href}>
               <Link
                 href={href}
+                title={label}
                 aria-current={active ? "page" : undefined}
                 className={cn(
-                  "flex h-12 items-center gap-4 rounded-2xl border-2 px-3 font-display text-[15px] font-semibold tracking-wide uppercase transition-colors duration-150",
+                  "font-display flex h-12 items-center gap-4 rounded-2xl border-2 px-3 text-[15px] font-semibold tracking-wide uppercase transition-colors duration-150",
                   active
                     ? "border-brand/50 bg-brand-soft text-brand"
-                    : "border-transparent text-ink-soft hover:bg-surface-2",
+                    : "text-ink-soft hover:bg-surface-2 border-transparent",
                 )}
               >
                 <Icon className="size-[26px] shrink-0" strokeWidth={2.4} style={{ color }} />
-                <span className="hidden xl:inline">{label}</span>
+                <span className="sr-only xl:not-sr-only">{label}</span>
               </Link>
             </li>
           );

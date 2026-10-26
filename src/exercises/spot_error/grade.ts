@@ -1,13 +1,12 @@
-import { richTextToPlain } from "@/content/richtext";
 import type { GradeResult } from "@/content/types";
 import type { SpotError, SpotErrorResponse } from "./schema";
 
 export function gradeSpotError(ex: SpotError, res: SpotErrorResponse): GradeResult {
   return {
     correct: res?.index === ex.errorIndex,
+    // The passage itself strikes out the mistake and shows the fix inline,
+    // so the feedback bar only needs the correction (no extra feedback line).
     correctAnswerText: ex.correction,
-    // The feedback bar shows feedback as plain text, so strip markup.
-    feedback: `${richTextToPlain(ex.segments[ex.errorIndex])} → ${richTextToPlain(ex.correction)}`,
   };
 }
 

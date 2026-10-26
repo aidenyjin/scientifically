@@ -17,11 +17,10 @@ describe("spot_error", () => {
     expect(spotError.grade(ex, { index: 1 }).correct).toBe(false);
   });
 
-  it("shows the correction as the answer and the fix as feedback", () => {
+  it("shows the correction as the answer (the passage shows the fix inline)", () => {
     expect(spotError.grade(ex, { index: 0 })).toEqual({
       correct: false,
       correctAnswerText: "using a voltmeter connected in parallel",
-      feedback: "using a voltmeter connected in series → using a voltmeter connected in parallel",
     });
   });
 

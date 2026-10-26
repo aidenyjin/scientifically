@@ -21,7 +21,7 @@ export function RightRail({ data, children }: { data: ShellData; children?: Reac
       <Card>
         <div className="flex items-center justify-between">
           <CardTitle>Daily quests</CardTitle>
-          <Link href="/quests" className="text-sm font-bold text-brand hover:underline">
+          <Link href="/quests" className="text-brand text-sm font-bold hover:underline">
             View all
           </Link>
         </div>
@@ -39,19 +39,26 @@ export function DailyGoalCard({ xp, goal }: { xp: number; goal: number }) {
     <Card>
       <div className="flex items-center justify-between">
         <CardTitle>Daily goal</CardTitle>
-        <Link href="/profile#settings" className="text-sm font-bold text-brand hover:underline">
+        <Link href="/profile#settings" className="text-brand text-sm font-bold hover:underline">
           Edit
         </Link>
       </div>
       <div className="mt-4 flex items-center gap-3">
-        <BoltIcon size={36} />
+        <span className="shrink-0">
+          <BoltIcon size={36} />
+        </span>
         <div className="flex-1">
-          <p className="mb-1.5 text-sm font-bold text-ink-soft">
+          <p className="text-ink-soft mb-1.5 text-sm font-bold">
             {done ? "Goal reached — nice!" : `Earn ${goal} XP today`}
           </p>
-          <ProgressBar value={xp / goal} color="var(--xp)" height={14} label="Daily goal progress" />
+          <ProgressBar
+            value={xp / goal}
+            color="var(--xp)"
+            height={14}
+            label="Daily goal progress"
+          />
         </div>
-        <span className="w-14 text-right text-sm font-bold text-muted tabular-nums">
+        <span className="text-muted w-14 text-right text-sm font-bold tabular-nums">
           {Math.min(xp, goal)}/{goal}
         </span>
       </div>
@@ -65,19 +72,21 @@ function LeagueCard({ league }: { league: ShellData["league"] }) {
     <Card>
       <div className="flex items-center justify-between">
         <CardTitle>{league.tierName} League</CardTitle>
-        <Link href="/leagues" className="text-sm font-bold text-brand hover:underline">
+        <Link href="/leagues" className="text-brand text-sm font-bold hover:underline">
           View league
         </Link>
       </div>
       <div className="mt-3 flex items-center gap-4">
-        <LeagueBadge tier={league.tier} size={46} />
-        <p className="text-[15px] font-semibold text-ink-soft">
+        <span className="shrink-0">
+          <LeagueBadge tier={league.tier} size={46} />
+        </span>
+        <p className="text-ink-soft text-[15px] font-semibold">
           {league.xp === 0 ? (
-            "Complete a lesson to join this week's leaderboard."
+            "Finish a lesson to start climbing this week's table."
           ) : (
             <>
-              You&apos;re ranked <span className="font-bold text-ink">#{league.rank}</span> with{" "}
-              <span className="font-bold text-ink">{league.xp} XP</span>
+              You&apos;re ranked <span className="text-ink font-bold">#{league.rank}</span> with{" "}
+              <span className="text-ink font-bold">{league.xp} XP</span>
               {inZone ? " — in the promotion zone!" : "."}
             </>
           )}

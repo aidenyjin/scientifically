@@ -12,10 +12,33 @@ import { GraphChart, SeriesMarker } from "./GraphChart";
 import { NumberAnswer } from "./NumberAnswer";
 import type { GraphRead, GraphReadResponse } from "./schema";
 
+/** Two answer columns when every option is short and they pair up evenly. */
+const twoColumnOptions = (options: string[]) => options.length % 2 === 0 && options.every((o) => o.length <= 48);
+
+/**
+ * Chart height that keeps the answers above the lesson footer on a laptop
+ * screen (1280×800): the viewport minus the lesson chrome (top bar, prompt,
+ * footer: `--lesson-chrome`, set on the view), the chart caption and the
+ * answer area, clamped to a readable range.
+ */
+function chartHeight(chart: GraphRead["chart"], question: GraphRead["question"]): string {
+  const hasCaption = Boolean(chart.title) || chart.series.length > 1;
+  let answer: number;
+  if (question.mode === "choice") {
+    const rows = twoColumnOptions(question.options) ? Math.ceil(question.options.length / 2) : question.options.length;
+    answer = rows * 64 + (rows - 1) * 12;
+  } else {
+    answer = 86;
+  }
+  const reserve = answer + (hasCaption ? 36 : 0);
+  return `clamp(170px, calc(100dvh - var(--lesson-chrome) - ${reserve}px), 290px)`;
+}
+
 export function GraphReadView({ exercise, status, onChange, seed }: ExerciseProps<GraphRead, GraphReadResponse>) {
   const { chart, question } = exercise;
   return (
-    <div className="grid gap-6">
+    // The lesson layout is roomier above 840px tall, so it takes more of the screen there.
+    <div className="grid gap-5 [--lesson-chrome:412px] [@media(min-height:841px)]:[--lesson-chrome:476px]">
       <figure className="rounded-3xl border-2 border-line bg-surface px-3 pt-4 pb-2 shadow-card">
         {(chart.title || chart.series.length > 1) && (
           <figcaption className="mb-2 flex flex-wrap items-center justify-between gap-x-6 gap-y-2 px-3">
@@ -29,7 +52,13 @@ export function GraphReadView({ exercise, status, onChange, seed }: ExerciseProp
             {chart.series.length > 1 && <Legend names={chart.series.map((s) => s.name)} markers={chart.kind === "scatter"} />}
           </figcaption>
         )}
-        <GraphChart chart={chart} reveal={status !== "answering"} />
+        <GraphChart
+          chart={chart}
+          reveal={status !== "answering"}
+          height={chartHeight(chart, question)}
+          // Choice questions ask about trends, not exact values: fewer, roomier gridlines.
+          maxYTicks={question.mode === "choice" ? 7 : 9}
+        />
       </figure>
 
       {question.mode === "choice" ? (
@@ -86,7 +115,7 @@ function ChoiceQuestion({
   const order = useMemo(() => shuffledOrder(options.length, seed), [options.length, seed]);
   const [selected, setSelected] = useState<number | null>(null);
   const locked = status !== "answering";
-  const twoColumns = options.length % 2 === 0 && options.every((o) => o.length <= 48);
+  const twoColumns = twoColumnOptions(options);
 
   const pick = (originalIndex: number) => {
     if (locked) return;

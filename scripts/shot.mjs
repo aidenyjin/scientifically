@@ -1,10 +1,12 @@
 // Dev helper: screenshot a page after scripted key presses / clicks.
+// Env: VIEWPORT=1280x800 (default 1440x900), SCHEME=dark.
 // Tip: for signed-in pages use http://localhost:3000/dev/login?next=/shop as the URL.
 // Usage: node scripts/shot.mjs <url> <out.png> [key:Enter] [key:1] [click:<css>] [type:<text>] [goto:/path] [wait:300] [shot:<file.png>]
 import { createRequire } from "module"; const require = createRequire(import.meta.url); let pw; try { pw = require("playwright"); } catch { pw = require("/opt/node-tools/node_modules/playwright"); } const { chromium } = pw;
 const [,, url, out, ...actions] = process.argv;
 const browser = await chromium.launch();
-const page = await browser.newPage({ viewport: { width: 1440, height: 900 } });
+const [vw, vh] = (process.env.VIEWPORT ?? "1440x900").split("x").map(Number);
+const page = await browser.newPage({ viewport: { width: vw, height: vh }, colorScheme: process.env.SCHEME === "dark" ? "dark" : "light" });
 const errors = [];
 page.on("pageerror", (e) => errors.push(e.message));
 page.on("console", (m) => m.type() === "error" && errors.push(m.text()));

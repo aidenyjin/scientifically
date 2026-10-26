@@ -39,7 +39,7 @@ export function ExerciseReviewCard({
       if (result.ok) {
         setEditing(false);
         router.refresh();
-      } else setErrors(result.errors);
+      } else setErrors(result.errors.map(relativeToExercise));
     });
 
   const remove = () =>
@@ -53,13 +53,20 @@ export function ExerciseReviewCard({
   return (
     <article
       id={exercise.id}
-      className={cn("rounded-3xl border-2 bg-surface", problems.length ? "border-wrong/50" : "border-line")}
+      className={cn(
+        "bg-surface rounded-3xl border-2",
+        problems.length ? "border-wrong/50" : "border-line",
+      )}
     >
-      <header className="flex items-center gap-3 border-b-2 border-line px-5 py-3">
-        <span className="font-display text-sm font-bold text-muted">#{index + 1}</span>
-        <span className="rounded-lg bg-brand-soft px-2 py-0.5 text-xs font-bold text-brand">{label}</span>
-        <span className="text-xs font-bold text-muted">difficulty {exercise.difficulty}</span>
-        <span className="min-w-0 flex-1 truncate text-xs font-semibold text-muted">{exercise.skillTags.join(", ")}</span>
+      <header className="border-line flex items-center gap-3 border-b-2 px-5 py-3">
+        <span className="font-display text-muted text-sm font-bold">#{index + 1}</span>
+        <span className="bg-brand-soft text-brand rounded-lg px-2 py-0.5 text-xs font-bold">
+          {label}
+        </span>
+        <span className="text-muted text-xs font-bold">difficulty {exercise.difficulty}</span>
+        <span className="text-muted min-w-0 flex-1 truncate text-xs font-semibold">
+          {exercise.skillTags.join(", ")}
+        </span>
         <IconButton label="Show JSON" onClick={() => setShowJson((v) => !v)} active={showJson}>
           <Braces className="size-4" />
         </IconButton>
@@ -79,7 +86,7 @@ export function ExerciseReviewCard({
       </header>
 
       {problems.length > 0 && (
-        <ul className="border-b-2 border-line bg-wrong-soft px-5 py-3 text-sm font-bold text-wrong-ink">
+        <ul className="border-line bg-wrong-soft text-wrong-ink border-b-2 px-5 py-3 text-sm font-bold">
           {problems.map((p) => (
             <li key={p}>⚠ {p}</li>
           ))}
@@ -88,37 +95,42 @@ export function ExerciseReviewCard({
 
       <div className="px-5 py-5">
         <ExercisePreview exercise={exercise} />
-        <p className="mt-4 rounded-2xl bg-surface-2 px-4 py-3 text-sm text-ink-soft">
-          <span className="font-bold text-ink">Explanation: </span>
+        <p className="bg-surface-2 text-ink-soft mt-4 rounded-2xl px-4 py-3 text-sm">
+          <span className="text-ink font-bold">Explanation: </span>
           <RichText text={exercise.explanation} />
           {exercise.hint && (
             <>
               <br />
-              <span className="font-bold text-ink">Hint: </span>
+              <span className="text-ink font-bold">Hint: </span>
               <RichText text={exercise.hint} />
             </>
           )}
         </p>
         {showJson && (
-          <pre className="mt-4 max-h-96 overflow-auto rounded-2xl bg-surface-2 p-4 font-mono text-xs leading-relaxed text-ink-soft">
+          <pre className="bg-surface-2 text-ink-soft mt-4 max-h-96 overflow-auto rounded-2xl p-4 font-mono text-xs leading-relaxed break-words whitespace-pre-wrap">
             {json}
           </pre>
         )}
       </div>
 
-      <Modal open={editing} onClose={() => setEditing(false)} label="Edit exercise JSON" className="max-w-3xl">
+      <Modal
+        open={editing}
+        onClose={() => setEditing(false)}
+        label="Edit exercise JSON"
+        className="max-w-3xl"
+      >
         <h2 className="font-display text-xl font-semibold">Edit exercise</h2>
-        <p className="text-sm text-ink-soft">Saved only if the whole pack still validates.</p>
+        <p className="text-ink-soft text-sm">Saved only if the whole pack still validates.</p>
         <textarea
           value={draft}
           onChange={(e) => setDraft(e.target.value)}
           spellCheck={false}
           rows={22}
           aria-label="Exercise JSON"
-          className="mt-3 w-full rounded-2xl border-2 border-line bg-surface-2 p-3 font-mono text-xs leading-relaxed text-ink outline-none focus:border-brand"
+          className="border-line bg-surface-2 text-ink focus:border-brand mt-3 w-full rounded-2xl border-2 p-3 font-mono text-xs leading-relaxed outline-none"
         />
         {errors.length > 0 && (
-          <ul className="mt-2 max-h-32 overflow-y-auto rounded-xl bg-wrong-soft p-3 text-xs font-bold text-wrong-ink">
+          <ul className="bg-wrong-soft text-wrong-ink mt-2 max-h-32 overflow-y-auto rounded-xl p-3 text-xs font-bold">
             {errors.map((e) => (
               <li key={e}>{e}</li>
             ))}
@@ -136,7 +148,9 @@ export function ExerciseReviewCard({
 
       <Modal open={confirmDelete} onClose={() => setConfirmDelete(false)} label="Delete exercise">
         <h2 className="font-display text-xl font-semibold">Delete this exercise?</h2>
-        <p className="mt-1 text-ink-soft">It is removed from the pack. This can&apos;t be undone.</p>
+        <p className="text-ink-soft mt-1">
+          It is removed from the pack. This can&apos;t be undone.
+        </p>
         <div className="mt-5 flex justify-end gap-3">
           <Button variant="ghost" onClick={() => setConfirmDelete(false)} autoFocus>
             Keep it
@@ -148,6 +162,11 @@ export function ExerciseReviewCard({
       </Modal>
     </article>
   );
+}
+
+/** Pack-level issue paths ("units.0.lessons.1.exercises.3.options: …") read better relative to the exercise. */
+function relativeToExercise(error: string): string {
+  return error.replace(/^units\.\d+\.lessons\.\d+\.exercises\.\d+(\.|: )/, "");
 }
 
 function IconButton({
@@ -169,7 +188,7 @@ function IconButton({
       aria-pressed={active}
       onClick={onClick}
       className={cn(
-        "grid size-8 place-items-center rounded-lg text-ink-soft transition-colors duration-150 hover:bg-surface-2 hover:text-ink",
+        "text-ink-soft hover:bg-surface-2 hover:text-ink grid size-8 place-items-center rounded-lg transition-colors duration-150",
         active && "bg-brand-soft text-brand",
       )}
     >

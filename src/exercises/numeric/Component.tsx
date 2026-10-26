@@ -84,7 +84,7 @@ export function NumericView({
     parsed !== null && /[eE×xX*·^,]|\d\s+\d/.test(text.trim()) ? formatNumber(parsed) : null;
 
   return (
-    <div className="grid max-w-[560px] gap-6">
+    <div className="grid max-w-[560px] gap-4">
       <div className="grid gap-2">
         <label
           className={cn(

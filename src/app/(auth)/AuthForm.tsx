@@ -25,39 +25,56 @@ export function AuthForm({
   footer: { text: string; href: string; link: string };
 }) {
   const [state, formAction, pending] = useActionState(action, undefined);
+  const formRef = useRef<HTMLFormElement>(null);
+  // After a failed submit, put the cursor in the field that needs fixing.
+  useEffect(() => {
+    if (!state?.field) return;
+    const input = formRef.current?.elements.namedItem(state.field);
+    if (input instanceof HTMLInputElement) input.focus();
+  }, [state]);
   return (
     <div className="mx-auto flex min-h-dvh max-w-[400px] flex-col justify-center px-6 py-12">
       <div className="flex flex-col items-center text-center">
         <Character id="lumi" expression={state?.error ? "surprised" : "happy"} size={110} animate />
-        <h1 className="mt-3 font-display text-3xl font-semibold">{title}</h1>
-        <p className="mt-1 text-ink-soft">{subtitle}</p>
+        <h1 className="font-display mt-3 text-3xl font-semibold">{title}</h1>
+        <p className="text-ink-soft mt-1 text-balance">{subtitle}</p>
       </div>
-      <form action={formAction} className="mt-8 grid gap-3">
+      <form ref={formRef} action={formAction} className="mt-8 grid gap-3">
         <TimezoneField />
-        {fields.map((f, i) => (
-          <label key={f.name} className="grid gap-1">
-            <span className="sr-only">{f.label}</span>
-            <input
-              name={f.name}
-              type={f.type}
-              autoComplete={f.autoComplete}
-              placeholder={f.label}
-              required
-              autoFocus={i === 0}
-              className="h-13 rounded-2xl border-2 border-line bg-surface-2 px-4 text-[16px] font-semibold text-ink outline-none transition-colors duration-150 placeholder:text-muted focus:border-brand focus:bg-surface"
-            />
-          </label>
-        ))}
-        <p aria-live="polite" className="min-h-5 text-sm font-bold text-wrong">
+        {fields.map((f, i) => {
+          const invalid = state?.field === f.name;
+          return (
+            <label key={f.name} className="grid gap-1">
+              <span className="sr-only">{f.label}</span>
+              <input
+                name={f.name}
+                defaultValue={state?.values?.[f.name]}
+                aria-invalid={invalid || undefined}
+                aria-describedby={invalid ? "auth-error" : undefined}
+                type={f.type}
+                autoComplete={f.autoComplete}
+                placeholder={f.label}
+                required
+                autoFocus={i === 0}
+                className="border-line bg-surface-2 text-ink placeholder:text-muted focus:border-brand focus:bg-surface aria-invalid:border-wrong aria-invalid:focus:border-wrong h-13 rounded-2xl border-2 px-4 text-[16px] font-semibold transition-colors duration-150 outline-none"
+              />
+            </label>
+          );
+        })}
+        <p
+          id="auth-error"
+          aria-live="polite"
+          className="text-wrong-ink -my-1 min-h-5 text-sm font-bold"
+        >
           {state?.error}
         </p>
         <Button type="submit" size="lg" block disabled={pending}>
           {pending ? "One moment…" : submit}
         </Button>
       </form>
-      <p className="mt-6 text-center text-sm font-semibold text-ink-soft">
+      <p className="text-ink-soft mt-6 text-center text-sm font-semibold">
         {footer.text}{" "}
-        <Link href={footer.href} className="font-bold text-brand hover:underline">
+        <Link href={footer.href} className="text-brand font-bold hover:underline">
           {footer.link}
         </Link>
       </p>

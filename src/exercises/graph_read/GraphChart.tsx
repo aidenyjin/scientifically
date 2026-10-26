@@ -32,8 +32,19 @@ const MARGIN = { top: 12, right: 22, bottom: 8, left: 8 };
  * Exact values appear in the tooltip only once `reveal` is set (after
  * checking) — before that the learner reads them off the gridlines.
  */
-export function GraphChart({ chart, reveal }: { chart: Chart; reveal: boolean }) {
-  const axes = chartAxes(chart);
+export function GraphChart({
+  chart,
+  reveal,
+  height = "280px",
+  maxYTicks,
+}: {
+  chart: Chart;
+  reveal: boolean;
+  /** Any CSS height, e.g. a clamp() that keeps the answers above the footer. */
+  height?: string;
+  maxYTicks?: number;
+}) {
+  const axes = chartAxes(chart, { maxYTicks });
   const xLabel = toUnicodeText(chart.xLabel);
   const yLabel = toUnicodeText(chart.yLabel);
 
@@ -56,6 +67,8 @@ export function GraphChart({ chart, reveal }: { chart: Chart; reveal: boolean })
       tick={tick}
       axisLine={axisLine}
       tickLine={false}
+      // Every gridline keeps its label: learners read values off them.
+      interval={0}
       width={68}
       label={yAxisLabel}
     />
@@ -109,7 +122,7 @@ export function GraphChart({ chart, reveal }: { chart: Chart; reveal: boolean })
           tickLine={false}
           height={48}
           label={xAxisLabel}
-            />
+        />
         {yAxis}
         {tooltip(lineCursor)}
         {chart.series.map((s, i) => (
@@ -145,7 +158,7 @@ export function GraphChart({ chart, reveal }: { chart: Chart; reveal: boolean })
           tickLine={false}
           height={48}
           label={xAxisLabel}
-            />
+        />
         {yAxis}
         {tooltip(lineCursor)}
         {scatterData(chart).map((data, i) => (
@@ -163,9 +176,11 @@ export function GraphChart({ chart, reveal }: { chart: Chart; reveal: boolean })
   }
 
   return (
-    <ResponsiveContainer width="100%" height={280} initialDimension={{ width: 640, height: 280 }}>
-      {body}
-    </ResponsiveContainer>
+    <div style={{ height }}>
+      <ResponsiveContainer width="100%" height="100%" initialDimension={{ width: 640, height: 240 }}>
+        {body}
+      </ResponsiveContainer>
+    </div>
   );
 }
 

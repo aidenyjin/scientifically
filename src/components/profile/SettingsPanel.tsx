@@ -95,13 +95,20 @@ export function SettingsPanel({
           }}
         />
       </Row>
-      <Row label="Time zone" hint={`Streaks and quests reset at midnight in ${timezone}.`}>
+      <Row label="Time zone" hint={`Streaks and quests reset at midnight, ${prettyZone(timezone)} time.`}>
         {deviceTz && deviceTz !== timezone ? (
-          <Button size="sm" variant="secondary" disabled={pending} onClick={() => save({ timezone: deviceTz })}>
-            Use {deviceTz}
+          <Button
+            size="sm"
+            variant="secondary"
+            className="normal-case tracking-normal"
+            disabled={pending}
+            onClick={() => save({ timezone: deviceTz })}
+            title={deviceTz}
+          >
+            Use {prettyZone(deviceTz)} time
           </Button>
         ) : (
-          <span className="text-sm font-bold text-muted">{timezone}</span>
+          <span className="text-sm font-bold whitespace-nowrap text-muted">{prettyZone(timezone)}</span>
         )}
       </Row>
 
@@ -126,6 +133,11 @@ export function SettingsPanel({
       </div>
     </div>
   );
+}
+
+/** "Australia/Sydney" → "Sydney", "America/Argentina/Buenos_Aires" → "Buenos Aires". */
+function prettyZone(tz: string): string {
+  return (tz.split("/").pop() ?? tz).replace(/_/g, " ");
 }
 
 function Row({ label, hint, children }: { label: string; hint: string; children: React.ReactNode }) {

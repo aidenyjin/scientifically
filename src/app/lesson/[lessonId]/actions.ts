@@ -18,7 +18,9 @@ export async function abandonLessonAction(input: { heartsLost: number }): Promis
   await loseHearts(user, Math.max(0, Math.floor(input.heartsLost)));
 }
 
-export async function refillHeartsAction(): Promise<RefillResult> {
-  const user = await requireUser();
-  return refillHeartsWithGems(user);
+export async function refillHeartsAction(input: { heartsLost: number }): Promise<RefillResult> {
+  // Hearts lost in the lesson so far are only known to the browser: record them first,
+  // otherwise the server thinks hearts are still full and refuses the refill.
+  await loseHearts(await requireUser(), Math.max(0, Math.floor(input?.heartsLost ?? 0)));
+  return refillHeartsWithGems(await requireUser());
 }
