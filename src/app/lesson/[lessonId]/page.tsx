@@ -1,21 +1,25 @@
 import { notFound } from "next/navigation";
 import { LessonPlayer } from "@/components/lesson/LessonPlayer";
+import { ClientSettings } from "@/components/shell/ClientSettings";
 import { findLesson, getActivePack } from "@/server/repo/packs";
-import { getCurrentUser } from "@/server/repo/users";
+import { parseSettings, requireUser } from "@/server/repo/users";
 import { abandonLessonAction, completeLessonAction, refillHeartsAction } from "./actions";
 
 export const dynamic = "force-dynamic";
 
 export default async function LessonPage({ params }: { params: Promise<{ lessonId: string }> }) {
   const { lessonId } = await params;
-  const user = await getCurrentUser();
+  const user = await requireUser();
   const pack = await getActivePack(user.activePackId);
   if (!pack) notFound();
   const found = findLesson(pack, lessonId);
   if (!found) notFound();
 
+  const settings = parseSettings(user.settings);
   return (
-    <LessonPlayer
+    <>
+      <ClientSettings sound={settings.sound} reduceMotion={settings.reduceMotion} />
+      <LessonPlayer
       packId={pack.id}
       lessonId={found.lesson.id}
       title={found.lesson.title}
@@ -27,6 +31,7 @@ export default async function LessonPage({ params }: { params: Promise<{ lessonI
       onComplete={completeLessonAction}
       onAbandon={abandonLessonAction}
       onRefillHearts={refillHeartsAction}
-    />
+      />
+    </>
   );
 }

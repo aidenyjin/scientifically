@@ -1,34 +1,62 @@
 import "server-only";
-import { db } from "@/server/db";
+import { redirect } from "next/navigation";
 import { GAME } from "@/game/config";
+import { getSessionUserId } from "@/server/auth/session";
+import { db } from "@/server/db";
 
 export const DEMO_USER_ID = "demo-user";
 
-/**
- * The signed-in user. Until accounts land (M12) this is always the demo
- * user, created on first use. Keep all callers going through this function.
- */
+const include = { wallet: true, streak: true } as const;
+
+/** The signed-in user (guest or registered), or null when there is no session. */
 export async function getCurrentUser() {
-  const include = { wallet: true, streak: true } as const;
-  const existing = await db.user.findUnique({ where: { id: DEMO_USER_ID }, include });
-  if (existing?.wallet && existing.streak) return existing;
-  return db.user.upsert({
-    where: { id: DEMO_USER_ID },
-    update: {
-      wallet: existing?.wallet ? undefined : { create: { gems: GAME.gems.starting, hearts: GAME.hearts.max } },
-      streak: existing?.streak ? undefined : { create: {} },
+  const id = await getSessionUserId();
+  if (!id) return null;
+  const user = await db.user.findUnique({ where: { id }, include });
+  if (!user) return null;
+  if (user.wallet && user.streak) return user;
+  // Repair users created without their 1:1 rows.
+  return db.user.update({
+    where: { id },
+    data: {
+      wallet: user.wallet ? undefined : { create: { gems: GAME.gems.starting, hearts: GAME.hearts.max } },
+      streak: user.streak ? undefined : { create: {} },
     },
-    create: {
-      id: DEMO_USER_ID,
-      name: "Scientist",
+    include,
+  });
+}
+
+/** Like getCurrentUser, but sends visitors without a session to /welcome. */
+export async function requireUser() {
+  const user = await getCurrentUser();
+  if (!user) redirect("/welcome");
+  return user;
+}
+
+export type CurrentUser = NonNullable<Awaited<ReturnType<typeof getCurrentUser>>>;
+
+export async function createUser(data: {
+  name: string;
+  email?: string;
+  passwordHash?: string;
+  dailyGoalXp?: number;
+  timezone?: string;
+  activePackId?: string | null;
+}) {
+  return db.user.create({
+    data: {
+      name: data.name,
+      email: data.email,
+      passwordHash: data.passwordHash,
+      dailyGoalXp: data.dailyGoalXp ?? 20,
+      timezone: data.timezone ?? "UTC",
+      activePackId: data.activePackId ?? null,
       wallet: { create: { gems: GAME.gems.starting, hearts: GAME.hearts.max } },
       streak: { create: {} },
     },
     include,
   });
 }
-
-export type CurrentUser = Awaited<ReturnType<typeof getCurrentUser>>;
 
 export interface UserSettings {
   sound: boolean;
@@ -43,5 +71,14 @@ export function parseSettings(json: string): UserSettings {
     return { ...fallback, ...(JSON.parse(json) as Partial<UserSettings>) };
   } catch {
     return fallback;
+  }
+}
+
+export function isValidTimeZone(tz: string): boolean {
+  try {
+    new Intl.DateTimeFormat("en-US", { timeZone: tz });
+    return true;
+  } catch {
+    return false;
   }
 }

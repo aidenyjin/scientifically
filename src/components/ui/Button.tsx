@@ -34,6 +34,23 @@ export type ButtonProps = ButtonHTMLAttributes<HTMLButtonElement> & {
   block?: boolean;
 };
 
+/** Class names for anything that should look like a Button (e.g. a Next <Link>). */
+export function buttonClassName({
+  variant = "primary",
+  size = "md",
+  block,
+  disabled,
+  className,
+}: { variant?: ButtonVariant; size?: ButtonSize; block?: boolean; disabled?: boolean; className?: string } = {}) {
+  return cn(
+    "pressable hover-lift inline-flex items-center justify-center gap-2 font-display font-semibold tracking-wide whitespace-nowrap uppercase select-none",
+    sizes[size],
+    disabled ? "border-0 bg-line text-muted [--edge:var(--line-strong)]" : variants[variant],
+    block && "w-full",
+    className,
+  );
+}
+
 /** Chunky pressable button. Disabled state goes flat grey. */
 export const Button = forwardRef<HTMLButtonElement, ButtonProps>(function Button(
   { variant = "primary", size = "md", block, className, disabled, ...props },
@@ -43,15 +60,7 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(function Button
     <button
       ref={ref}
       disabled={disabled}
-      className={cn(
-        "pressable hover-lift inline-flex items-center justify-center gap-2 font-display font-semibold tracking-wide uppercase select-none",
-        sizes[size],
-        disabled
-          ? "border-0 bg-line text-muted [--edge:var(--line-strong)]"
-          : variants[variant],
-        block && "w-full",
-        className,
-      )}
+      className={buttonClassName({ variant, size, block, disabled, className })}
       {...props}
     />
   );

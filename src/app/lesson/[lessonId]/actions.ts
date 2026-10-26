@@ -1,7 +1,7 @@
 "use server";
 
 import type { CompletionSummary, LessonCompletionInput, RefillResult } from "@/engine/summary";
-import { getCurrentUser } from "@/server/repo/users";
+import { requireUser } from "@/server/repo/users";
 import {
   completeLessonForUser,
   loseHearts,
@@ -9,16 +9,16 @@ import {
 } from "@/server/services/lesson-completion";
 
 export async function completeLessonAction(input: LessonCompletionInput): Promise<CompletionSummary> {
-  const user = await getCurrentUser();
+  const user = await requireUser();
   return completeLessonForUser(user.id, input);
 }
 
 export async function abandonLessonAction(input: { heartsLost: number }): Promise<void> {
-  const user = await getCurrentUser();
+  const user = await requireUser();
   await loseHearts(user.id, Math.max(0, Math.floor(input.heartsLost)));
 }
 
 export async function refillHeartsAction(): Promise<RefillResult> {
-  const user = await getCurrentUser();
+  const user = await requireUser();
   return refillHeartsWithGems(user.id);
 }

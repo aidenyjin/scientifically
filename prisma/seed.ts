@@ -1,4 +1,5 @@
 import "dotenv/config";
+import bcrypt from "bcryptjs";
 import { PrismaBetterSqlite3 } from "@prisma/adapter-better-sqlite3";
 import { buildDemoPack } from "../src/content/demo-pack";
 import { validatePack } from "../src/content/schema/course";
@@ -23,17 +24,20 @@ async function main() {
   };
   await db.contentPack.upsert({ where: { id: pack.id }, update: data, create: { id: pack.id, ...data } });
 
+  const passwordHash = await bcrypt.hash("scientist", 10);
   await db.user.upsert({
     where: { id: "demo-user" },
-    update: {},
+    update: { email: "demo@scientifically.dev", passwordHash },
     create: {
       id: "demo-user",
-      name: "Scientist",
+      name: "Demo Scientist",
+      email: "demo@scientifically.dev",
+      passwordHash,
       wallet: { create: { gems: GAME.gems.starting, hearts: GAME.hearts.max } },
       streak: { create: {} },
     },
   });
-  console.log(`Seeded pack "${pack.id}" (${pack.units.length} units) and the demo user.`);
+  console.log(`Seeded pack "${pack.id}" (${pack.units.length} units) and demo@scientifically.dev / scientist.`);
 }
 
 main()

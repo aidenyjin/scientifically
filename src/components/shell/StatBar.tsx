@@ -1,5 +1,6 @@
 import { FlameIcon, GemIcon, HeartIcon } from "@/components/icons";
 import type { ShellData } from "@/server/services/shell";
+import { CourseSwitcher } from "./CourseSwitcher";
 
 function Stat({ icon, value, color, label }: { icon: React.ReactNode; value: React.ReactNode; color: string; label: string }) {
   return (
@@ -18,9 +19,7 @@ function Stat({ icon, value, color, label }: { icon: React.ReactNode; value: Rea
 export function StatBar({ data }: { data: ShellData }) {
   return (
     <div className="flex items-center justify-between gap-2">
-      <span className="flex h-10 max-w-[150px] items-center truncate rounded-xl border-2 border-line px-3 text-sm font-bold whitespace-nowrap text-ink-soft" title="Current course">
-        {data.pack?.subject ?? "No course"}
-      </span>
+      <CourseSwitcher packs={data.packs} activeId={data.pack?.id ?? null} />
       <div className="flex items-center">
         <Stat
           label={`${data.streak} day streak`}

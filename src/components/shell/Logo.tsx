@@ -1,5 +1,5 @@
 /** Wordmark: a little flask + "scientifically". */
-export function Logo({ compact = false }: { compact?: boolean }) {
+export function Logo({ compact = false, full = false }: { compact?: boolean; full?: boolean }) {
   return (
     <span className="flex items-center gap-2">
       <svg viewBox="0 0 32 32" width="34" height="34" aria-hidden className="shrink-0">
@@ -10,7 +10,7 @@ export function Logo({ compact = false }: { compact?: boolean }) {
         <rect x="14.5" y="6" width="1.6" height="5" rx=".8" fill="white" opacity="0.5" />
       </svg>
       {!compact && (
-        <span className="hidden font-display text-[22px] font-bold tracking-tight text-brand xl:inline">
+        <span className={`${full ? "inline" : "hidden xl:inline"} font-display text-[22px] font-bold tracking-tight text-brand`}>
           scientifically
         </span>
       )}
