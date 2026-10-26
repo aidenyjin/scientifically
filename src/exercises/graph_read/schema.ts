@@ -16,23 +16,28 @@ export const chartSchema = z.object({
   series: z.array(z.object({ name: z.string().max(30), points: z.array(point).min(2).max(40) })).min(1).max(4),
 });
 
-export const graphReadSchema = exerciseBaseSchema.extend({
-  type: z.literal("graph_read"),
-  chart: chartSchema,
-  question: z.discriminatedUnion("mode", [
-    z.object({
-      mode: z.literal("choice"),
-      options: z.array(richText()).min(2).max(5),
-      answerIndex: z.number().int().min(0),
-    }),
-    z.object({
-      mode: z.literal("numeric"),
-      answer: z.number(),
-      tolerance: toleranceSchema,
-      unit: z.string().max(16).optional(),
-    }),
-  ]),
-});
+export const graphReadSchema = exerciseBaseSchema
+  .extend({
+    type: z.literal("graph_read"),
+    chart: chartSchema,
+    question: z.discriminatedUnion("mode", [
+      z.object({
+        mode: z.literal("choice"),
+        options: z.array(richText()).min(2).max(5).describe("Answer options. Shuffled when shown."),
+        answerIndex: z.number().int().min(0).describe("Index into options of the single correct answer"),
+      }),
+      z.object({
+        mode: z.literal("numeric"),
+        answer: z.number().describe("A value read directly off the chart"),
+        tolerance: toleranceSchema,
+        unit: z.string().max(16).optional(),
+      }),
+    ]),
+  })
+  .refine((ex) => ex.question.mode !== "choice" || ex.question.answerIndex < ex.question.options.length, {
+    message: "answerIndex must point at an option",
+    path: ["question", "answerIndex"],
+  });
 
 export type GraphRead = z.infer<typeof graphReadSchema>;
 

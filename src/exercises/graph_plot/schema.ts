@@ -20,6 +20,10 @@ export const graphPlotSchema = exerciseBaseSchema
     tolerance: z.number().min(0).describe("How far (in axis units) a placed point may be from the target"),
     connect: z.boolean().optional().describe("Draw a line through placed points in x order"),
   })
+  .refine((ex) => ex.axes.xMin < ex.axes.xMax && ex.axes.yMin < ex.axes.yMax, {
+    message: "axes need min < max",
+    path: ["axes"],
+  })
   .refine(
     (ex) =>
       ex.points.every(
