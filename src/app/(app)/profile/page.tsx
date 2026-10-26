@@ -52,14 +52,16 @@ export default async function ProfilePage() {
         <Stat icon={<SnowflakeIcon size={30} />} value={p.freezes} label="Streak freezes" />
       </section>
 
-      <Card>
-        <div className="flex items-center justify-between">
-          <CardTitle>Streak</CardTitle>
-          <span className="text-sm font-bold text-muted">Longest: {p.longestStreak} days · {p.minutes} min learning</span>
+      <Card className="grid grid-cols-[1fr_300px] items-center gap-8">
+        <div className="flex flex-col items-center text-center">
+          <FlameIcon size={88} muted={p.streak === 0} />
+          <p className="mt-1 font-display text-5xl font-bold text-streak tabular-nums">{p.streak}</p>
+          <p className="font-display text-lg font-semibold text-ink">day streak</p>
+          <p className="mt-3 text-sm font-bold text-muted">
+            Longest {p.longestStreak} · {p.freezes} freeze{p.freezes === 1 ? "" : "s"} · {p.minutes} min learning
+          </p>
         </div>
-        <div className="mt-3">
-          <StreakCalendar days={p.calendar} monthLabel={monthLabel} />
-        </div>
+        <StreakCalendar days={p.calendar} monthLabel={monthLabel} />
       </Card>
 
       <Card>

@@ -8,7 +8,7 @@ export function StreakCalendar({ days, monthLabel }: { days: ProfileView["calend
   const lead = days[0]?.weekday ?? 0;
   return (
     <div>
-      <p className="font-display text-lg font-semibold">{monthLabel}</p>
+      <p className="text-center font-display text-base font-semibold">{monthLabel}</p>
       <div className="mt-3 grid grid-cols-7 gap-1.5 text-center">
         {WEEKDAYS.map((d, i) => (
           <span key={i} className="text-xs font-bold text-muted">
@@ -23,7 +23,7 @@ export function StreakCalendar({ days, monthLabel }: { days: ProfileView["calend
             key={d.date}
             title={d.active ? "Practised" : d.frozen ? "Streak freeze" : undefined}
             className={cn(
-              "grid aspect-square place-items-center rounded-full text-sm font-bold",
+              "grid size-9 place-items-center justify-self-center rounded-full text-[13px] font-bold",
               d.active && "bg-streak text-white",
               d.frozen && "bg-freeze/25 text-[#1590cc]",
               !d.active && !d.frozen && (d.isFuture ? "text-line-strong" : "text-ink-soft"),
