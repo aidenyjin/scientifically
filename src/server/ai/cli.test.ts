@@ -36,7 +36,8 @@ describe("generate CLI --validate", () => {
   });
 
   it("prints readable errors and exits 1 for a broken pack", async () => {
-    const pack = buildDemoPack();
+    // Clone: buildDemoPack() shares the registry's example objects.
+    const pack = structuredClone(buildDemoPack());
     (pack.units[0].lessons[0].exercises[1] as { difficulty: number }).difficulty = 9;
     pack.units[0].lessons[1].id = pack.units[0].lessons[0].id;
     const file = path.join(dir, "broken.json");

@@ -23,7 +23,7 @@ const lessonRequest: AiRequest = { ...outlineRequest, schema: getLessonJsonSchem
 const opts = { model: "claude-opus-5-5" };
 const body = (message: string) => ({ type: "error", error: { type: "invalid_request_error", message } });
 
-function message(partial: Partial<BetaMessage> & { content: unknown[] }): BetaMessage {
+function message(partial: Omit<Partial<BetaMessage>, "content"> & { content: unknown[] }): BetaMessage {
   return {
     id: "msg_1",
     type: "message",

@@ -6,8 +6,9 @@ import { SCHEMA_VERSION, type ContentPack, type Lesson, type Unit } from "./sche
  * a type (or examples) automatically shows up here. It is demo/test data, not
  * course content — real packs come from the AI pipeline.
  */
+// Deep copies: callers may mutate the pack, and the registry examples are shared.
 const examplesOf = (type: ExerciseType): Exercise[] =>
-  (exerciseCores.find((c) => c.type === type)?.examples ?? []) as Exercise[];
+  structuredClone((exerciseCores.find((c) => c.type === type)?.examples ?? []) as Exercise[]);
 
 function lesson(id: string, title: string, objectives: string[], types: ExerciseType[]): Lesson | null {
   const exercises = types.flatMap(examplesOf);
