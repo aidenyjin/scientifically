@@ -1,0 +1,265 @@
+@import "tailwindcss";
+
+/*
+ * Design tokens. Components use these via Tailwind utilities (bg-surface,
+ * text-ink, border-line, ...). Dark mode swaps the variables, so components
+ * rarely need `dark:` variants.
+ */
+:root {
+  --bg: #f6f6fb;
+  --surface: #ffffff;
+  --surface-2: #f1f1f8;
+  --line: #e4e4ee;
+  --line-strong: #d2d2e0;
+  --ink: #2d2d3f;
+  --ink-soft: #55556b;
+  --muted: #8b8ba3;
+
+  --brand: #6c5ce7;
+  --brand-dark: #5241c9;
+  --brand-soft: #eeebff;
+
+  --correct: #2bc46b;
+  --correct-dark: #1f9b53;
+  --correct-soft: #dcfbe8;
+  --correct-ink: #137a3e;
+
+  --wrong: #ff4b4b;
+  --wrong-dark: #d33434;
+  --wrong-soft: #ffe3e3;
+  --wrong-ink: #b42323;
+
+  --gem: #1cb0f6;
+  --gem-dark: #1590cc;
+  --streak: #ff9600;
+  --streak-dark: #e07f00;
+  --xp: #ffc800;
+  --xp-dark: #e0a800;
+  --heart: #ff4b6e;
+  --freeze: #5ccfff;
+
+  --shadow-card: 0 1px 0 rgb(20 20 50 / 0.04), 0 8px 24px -12px rgb(20 20 50 / 0.12);
+  --shadow-pop: 0 12px 40px -12px rgb(20 20 50 / 0.28);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #12121c;
+    --surface: #1b1b29;
+    --surface-2: #232335;
+    --line: #2e2e44;
+    --line-strong: #3b3b56;
+    --ink: #ececf6;
+    --ink-soft: #c2c2d6;
+    --muted: #8686a3;
+    --brand: #8b7dff;
+    --brand-dark: #6a5ae6;
+    --brand-soft: #29264a;
+    --correct-soft: #15301f;
+    --correct-ink: #5fe39a;
+    --wrong-soft: #3a1c22;
+    --wrong-ink: #ff8a8a;
+    --shadow-card: 0 1px 0 rgb(0 0 0 / 0.3), 0 8px 24px -12px rgb(0 0 0 / 0.6);
+  }
+}
+
+:root[data-theme="dark"] {
+  --bg: #12121c;
+  --surface: #1b1b29;
+  --surface-2: #232335;
+  --line: #2e2e44;
+  --line-strong: #3b3b56;
+  --ink: #ececf6;
+  --ink-soft: #c2c2d6;
+  --muted: #8686a3;
+  --brand: #8b7dff;
+  --brand-dark: #6a5ae6;
+  --brand-soft: #29264a;
+  --correct-soft: #15301f;
+  --correct-ink: #5fe39a;
+  --wrong-soft: #3a1c22;
+  --wrong-ink: #ff8a8a;
+  --shadow-card: 0 1px 0 rgb(0 0 0 / 0.3), 0 8px 24px -12px rgb(0 0 0 / 0.6);
+}
+
+@theme inline {
+  --color-bg: var(--bg);
+  --color-surface: var(--surface);
+  --color-surface-2: var(--surface-2);
+  --color-line: var(--line);
+  --color-line-strong: var(--line-strong);
+  --color-ink: var(--ink);
+  --color-ink-soft: var(--ink-soft);
+  --color-muted: var(--muted);
+  --color-brand: var(--brand);
+  --color-brand-dark: var(--brand-dark);
+  --color-brand-soft: var(--brand-soft);
+  --color-correct: var(--correct);
+  --color-correct-dark: var(--correct-dark);
+  --color-correct-soft: var(--correct-soft);
+  --color-correct-ink: var(--correct-ink);
+  --color-wrong: var(--wrong);
+  --color-wrong-dark: var(--wrong-dark);
+  --color-wrong-soft: var(--wrong-soft);
+  --color-wrong-ink: var(--wrong-ink);
+  --color-gem: var(--gem);
+  --color-gem-dark: var(--gem-dark);
+  --color-streak: var(--streak);
+  --color-streak-dark: var(--streak-dark);
+  --color-xp: var(--xp);
+  --color-xp-dark: var(--xp-dark);
+  --color-heart: var(--heart);
+  --color-freeze: var(--freeze);
+
+  --font-sans: var(--font-nunito), ui-rounded, system-ui, sans-serif;
+  --font-display: var(--font-fredoka), var(--font-nunito), ui-rounded, system-ui, sans-serif;
+
+  --shadow-card: var(--shadow-card);
+  --shadow-pop: var(--shadow-pop);
+
+  /* Motion: strong custom curves (never ease-in for UI). */
+  --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
+  --ease-in-out: cubic-bezier(0.77, 0, 0.175, 1);
+  --ease-drawer: cubic-bezier(0.32, 0.72, 0, 1);
+}
+
+html {
+  background: var(--bg);
+  color: var(--ink);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+body {
+  background: var(--bg);
+  color: var(--ink);
+  font-family: var(--font-sans);
+}
+
+::selection {
+  background: var(--brand-soft);
+  color: var(--ink);
+}
+
+:focus-visible {
+  outline: 3px solid color-mix(in oklab, var(--brand) 55%, transparent);
+  outline-offset: 2px;
+}
+
+/*
+ * Chunky "3D" pressable surface. The bottom shadow is the depth; pressing
+ * moves the face down into it. Transform only, so it stays on the GPU.
+ */
+.pressable {
+  --depth: 4px;
+  --edge: var(--line-strong);
+  box-shadow: 0 var(--depth) 0 var(--edge);
+  transition:
+    transform 120ms var(--ease-out),
+    box-shadow 120ms var(--ease-out),
+    background-color 150ms ease,
+    border-color 150ms ease,
+    color 150ms ease;
+  transform: translateY(0);
+}
+.pressable:active:not(:disabled):not([aria-disabled="true"]) {
+  transform: translateY(var(--depth));
+  box-shadow: 0 0 0 var(--edge);
+  transition-duration: 60ms;
+}
+.pressable:disabled,
+.pressable[aria-disabled="true"] {
+  cursor: not-allowed;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .hover-lift:hover {
+    filter: brightness(1.04);
+  }
+}
+
+/* Shake for wrong answers / mismatches. Short and horizontal only. */
+@keyframes shake {
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+  20% {
+    transform: translateX(-6px);
+  }
+  40% {
+    transform: translateX(6px);
+  }
+  60% {
+    transform: translateX(-4px);
+  }
+  80% {
+    transform: translateX(3px);
+  }
+}
+.animate-shake {
+  animation: shake 360ms var(--ease-out);
+}
+
+@keyframes pop-in {
+  from {
+    opacity: 0;
+    transform: scale(0.94);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+.animate-pop-in {
+  animation: pop-in 220ms var(--ease-out) both;
+}
+
+@keyframes rise-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+.animate-rise-in {
+  animation: rise-in 280ms var(--ease-out) both;
+}
+
+@keyframes pulse-ring {
+  0% {
+    transform: scale(1);
+    opacity: 0.55;
+  }
+  100% {
+    transform: scale(1.45);
+    opacity: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 1ms !important;
+    animation-iteration-count: 1 !important;
+    scroll-behavior: auto !important;
+  }
+  .pressable {
+    transition-property: background-color, border-color, color;
+  }
+  .pressable:active:not(:disabled) {
+    transform: none;
+  }
+}
+
+/* App honours an explicit "reduce motion" user setting too. */
+:root[data-reduce-motion="true"] *,
+:root[data-reduce-motion="true"] *::before,
+:root[data-reduce-motion="true"] *::after {
+  animation-duration: 1ms !important;
+  animation-iteration-count: 1 !important;
+}

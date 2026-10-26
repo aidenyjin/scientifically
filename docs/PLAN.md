@@ -58,7 +58,7 @@ src/
   content/
     schema/                 # Zod schemas: course.ts, exercise-base.ts, index.ts
     registry.ts             # exercise type registry
-    demo-pack.json          # handwritten demo pack, one of every type
+    demo-pack.ts            # demo pack built from every type's examples
   exercises/
     <type>/                 # one folder per question type (see §4)
       schema.ts  grade.ts  Component.tsx  autoCheck.ts?  example.ts  grade.test.ts
@@ -333,7 +333,7 @@ one display font + one body font from Google Fonts via `next/font`.
 - `ContentPack` — id, title, status (`draft`|`published`|`archived`), json, createdAt, generatedBy JSON
 - `GenerationJob` — id, params JSON, status, log JSON[], inputTokens, outputTokens, error, createdAt
 
-`db:seed` loads `src/content/demo-pack.json` as a published pack and creates a demo user.
+`db:seed` loads the demo pack (`src/content/demo-pack.ts`) as a published pack and creates a demo user.
 Until M12, the app runs as that single demo user (`getCurrentUser()` returns it) — keep all
 data access behind `server/repo/*` so swapping in real auth later is one change.
 
@@ -392,25 +392,25 @@ Effort tag: **[low]** fine at low effort · **[med]** take care · **[high]** do
 consider a higher-effort pass or review.
 
 ### M0 — Scaffold [low]
-- [ ] `create-next-app` (TS, Tailwind, App Router, ESLint, `src/`), add Prettier, Vitest, Playwright, Zod, Zustand, motion, Prisma, mathjs, Recharts
-- [ ] All scripts from §1; `.env.example`; `.gitignore` (dev.db, .env)
-- [ ] GitHub Actions CI: install, lint, typecheck, test, build
-- [ ] Empty route skeleton from §2 with the sidebar/right-rail layout rendering placeholders
+- [x] `create-next-app` (TS, Tailwind, App Router, ESLint, `src/`), add Prettier, Vitest, Playwright, Zod, Zustand, motion, Prisma, mathjs, Recharts
+- [x] All scripts from §1; `.env.example`; `.gitignore` (dev.db, .env)
+- [x] GitHub Actions CI: install, lint, typecheck, test, build
+- [x] Empty route skeleton from §2 with the sidebar/right-rail layout rendering placeholders
 - **Done when:** `npm run dev` shows the shell; CI config present; all checks pass.
 
 ### M1 — Content schema & registry [high]
-- [ ] `exercise-base.ts`, `course.ts`, pack-level refinements (unique ids, valid characterIds)
-- [ ] `registry.ts` / `registry.client.ts` with the interface in §3
-- [ ] `RichText` component + tests for the markup
-- [ ] `lib/rng.ts` (seeded, e.g. mulberry32) and `lib/clock.ts`
+- [x] `exercise-base.ts`, `course.ts`, pack-level refinements (unique ids, valid characterIds)
+- [x] `registry.ts` / `registry.client.ts` with the interface in §3
+- [x] `RichText` component + tests for the markup
+- [x] `lib/rng.ts` (seeded, e.g. mulberry32) and `lib/clock.ts`
 - **Done when:** a pack with only `info_card` + `multiple_choice` validates; invalid packs give readable errors; `z.toJSONSchema` output snapshot test exists.
 
 ### M2 — Lesson engine + reference types [high]
-- [ ] Engine state machine (§5) with tests: retry queue, hearts, fail, complete, combo, info_card rules
-- [ ] Zustand store + lesson screen + bottom feedback bar + results screen (basic)
-- [ ] Keyboard system
-- [ ] Types: `info_card`, `multiple_choice`, `true_false` — complete with tests. **`multiple_choice` is the reference implementation every other type copies.**
-- [ ] Lesson loads from `demo-pack.json` directly (no DB yet)
+- [x] Engine state machine (§5) with tests: retry queue, hearts, fail, complete, combo, info_card rules
+- [x] Zustand store + lesson screen + bottom feedback bar + results screen (basic)
+- [x] Keyboard system
+- [x] Types: `info_card`, `multiple_choice`, `true_false` — complete with tests. **`multiple_choice` is the reference implementation every other type copies.**
+- [x] Lesson loads the demo pack (from the DB, seeded)
 - **Done when:** you can play a demo lesson end-to-end with mouse and keyboard only.
 
 ### M3 — Core question types [low]
@@ -424,8 +424,8 @@ consider a higher-effort pass or review.
 - **Done when:** all in demo pack and playable; formula parser handles `Ca(OH)2`, `Fe2(SO4)3`, `C6H12O6`.
 
 ### M5 — Persistence [low]
-- [ ] Prisma schema (§9), `db:push`, `db:seed`, `server/repo/*`, `getCurrentUser()`
-- [ ] Lesson loads pack from DB; completion saved via server action (progress, attempts, XP event)
+- [x] Prisma schema (§9), `db:push`, `db:seed`, `server/repo/*`, `getCurrentUser()`
+- [x] Lesson loads pack from DB; completion saved via server action (progress, attempts, XP event)
 - **Done when:** progress survives reload; seed works on a fresh clone.
 
 ### M6 — Learn path & home [med]
@@ -485,3 +485,12 @@ consider a higher-effort pass or review.
 ## 14. Decisions log
 
 _(Append dated one-line entries for any choice not covered above.)_
+
+- 2026-10-26: Next.js 16.4 — Cache Components left OFF (classic dynamic rendering); app pages use `dynamic = "force-dynamic"`. Read `node_modules/next/dist/docs/` before using unfamiliar Next APIs (params are Promises, etc.).
+- 2026-10-26: Prisma 7 (stable 7.10.1; `latest` tag was an RC). Uses `prisma.config.ts`, the `prisma-client` generator (output `src/generated/prisma`, gitignored, built on `postinstall`) and the better-sqlite3 driver adapter (`src/server/db.ts`).
+- 2026-10-26: The demo pack is `src/content/demo-pack.ts`, assembled from every type's `examples` (instead of a hand-written JSON file), so a type's folder is the only place to edit when adding examples.
+- 2026-10-26: `ExerciseCore.examples` (array) replaces `example`; `label` added for admin UI. Exercise folders: `schema.ts`, `grade.ts`, `index.ts` (core), `Component.tsx`, `grade.test.ts`.
+- 2026-10-26: `numeric` uses `unit` (+ optional `unitChoices` to make the learner pick the unit) instead of `units: string[]`.
+- 2026-10-26: `ExerciseProps.onSubmit` lets self-finishing types (match_pairs) trigger Check themselves.
+- 2026-10-26: lucide-react for UI icons; custom SVG game icons live in `src/components/icons.tsx`.
+- 2026-10-26: Vitest config is `vitest.config.mts` using Vite's native `resolve.tsconfigPaths`.

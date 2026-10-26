@@ -1,0 +1,193 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "sqlite"
+}
+
+model User {
+  id           String   @id @default(cuid())
+  name         String
+  email        String?  @unique
+  passwordHash String?
+  dailyGoalXp  Int      @default(20)
+  timezone     String   @default("UTC")
+  /// JSON: { sound: boolean, reduceMotion: boolean, outfit: Record<characterId, cosmeticId[]> }
+  settings     String   @default("{}")
+  activePackId String?
+  createdAt    DateTime @default(now())
+
+  wallet       Wallet?
+  streak       Streak?
+  progress     LessonProgress[]
+  attempts     Attempt[]
+  skills       SkillStrength[]
+  xpEvents     XpEvent[]
+  achievements AchievementUnlock[]
+  quests       QuestProgress[]
+  leagues      LeagueMembership[]
+  purchases    Purchase[]
+}
+
+model Wallet {
+  userId          String   @id
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  gems            Int      @default(500)
+  hearts          Int      @default(5)
+  heartsUpdatedAt DateTime @default(now())
+  streakFreezes   Int      @default(0)
+  /// JSON: { doubleXpUntil?: ISO string }
+  boosts          String   @default("{}")
+  /// JSON: string[] of owned cosmetic ids
+  cosmetics       String   @default("[]")
+}
+
+model Streak {
+  userId         String  @id
+  user           User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  current        Int     @default(0)
+  longest        Int     @default(0)
+  /// YYYY-MM-DD in the user's timezone
+  lastActiveDate String?
+  /// JSON: string[] of YYYY-MM-DD dates that were protected by a freeze
+  frozenDates    String  @default("[]")
+}
+
+model LessonProgress {
+  id             String   @id @default(cuid())
+  userId         String
+  user           User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  packId         String
+  lessonId       String
+  completedAt    DateTime @default(now())
+  bestAccuracy   Float
+  timesCompleted Int      @default(1)
+
+  @@unique([userId, packId, lessonId])
+}
+
+model Attempt {
+  id         String   @id @default(cuid())
+  userId     String
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  packId     String
+  lessonId   String
+  exerciseId String
+  /// JSON: string[]
+  skillTags  String
+  correct    Boolean
+  at         DateTime @default(now())
+
+  @@index([userId, packId, at])
+}
+
+model SkillStrength {
+  id           String   @id @default(cuid())
+  userId       String
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  packId       String
+  skillTag     String
+  strength     Float    @default(0)
+  intervalDays Float    @default(0)
+  lastSeenAt   DateTime @default(now())
+  dueAt        DateTime @default(now())
+
+  @@unique([userId, packId, skillTag])
+}
+
+model XpEvent {
+  id     String   @id @default(cuid())
+  userId String
+  user   User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  amount Int
+  /// lesson | checkpoint | practice | quest | achievement | bonus
+  source String
+  at     DateTime @default(now())
+
+  @@index([userId, at])
+}
+
+model AchievementUnlock {
+  id            String   @id @default(cuid())
+  userId        String
+  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  achievementId String
+  tier          Int
+  unlockedAt    DateTime @default(now())
+
+  @@unique([userId, achievementId, tier])
+}
+
+model QuestProgress {
+  id        String  @id @default(cuid())
+  userId    String
+  user      User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  /// YYYY-MM-DD local date the quest belongs to
+  date      String
+  questId   String
+  progress  Int     @default(0)
+  target    Int
+  claimed   Boolean @default(false)
+
+  @@unique([userId, date, questId])
+}
+
+model LeagueMembership {
+  id      String @id @default(cuid())
+  userId  String
+  user    User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  /// ISO week id, e.g. 2026-W43 (weeks start Monday 00:00 UTC)
+  weekId  String
+  /// 0 = Quark ... 9 = Galaxy
+  tier    Int
+  groupId String
+  /// set when the week is closed: promoted | demoted | stayed
+  outcome String?
+
+  @@unique([userId, weekId])
+  @@index([weekId, groupId])
+}
+
+model Purchase {
+  id     String   @id @default(cuid())
+  userId String
+  user   User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  itemId String
+  cost   Int
+  at     DateTime @default(now())
+}
+
+model ContentPack {
+  id          String   @id
+  title       String
+  subject     String
+  level       String
+  /// draft | published | archived
+  status      String   @default("draft")
+  /// full ContentPack JSON (see src/content/schema)
+  json        String
+  /// JSON: { provider, model, jobId, params } or { source: "import" | "demo" }
+  generatedBy String   @default("{}")
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model GenerationJob {
+  id           String   @id @default(cuid())
+  /// JSON: GenerationParams
+  params       String
+  /// queued | outlining | generating | done | failed
+  status       String   @default("queued")
+  /// JSON: { at, level, message }[]
+  log          String   @default("[]")
+  /// JSON: the outline once stage 1 is done
+  outline      String?
+  packId       String?
+  inputTokens  Int      @default(0)
+  outputTokens Int      @default(0)
+  error        String?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+}
