@@ -211,3 +211,18 @@ model GenerationJob {
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
 }
+
+/// A key an outside AI agent uses to call /api/agent (created in /admin/agents).
+model ApiKey {
+  id         String    @id @default(cuid())
+  name       String
+  /// The first characters of the key, shown in the admin list ("sci_AbC1…")
+  prefix     String
+  /// sha256 of the full key; the key itself is never stored
+  hash       String    @unique
+  /// May publish packs and change published ones (else drafts only)
+  canPublish Boolean   @default(true)
+  createdAt  DateTime  @default(now())
+  lastUsedAt DateTime?
+  revokedAt  DateTime?
+}

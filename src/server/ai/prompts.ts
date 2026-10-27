@@ -120,6 +120,22 @@ export function describeExerciseType(type: ExerciseType): string {
   return parts.join("\n");
 }
 
+/**
+ * Everything a writer needs to know about the content format: the contract,
+ * quality rules, cast, simulation models and each allowed type. Shared by the
+ * generation system prompt and the guide for outside agents (src/server/agent).
+ */
+export function buildContentReference(ctx: Pick<PromptContext, "types" | "simModels">): string {
+  return [
+    CONTRACT,
+    QUALITY_RULES,
+    describeCast(),
+    describeSimModels(ctx.simModels),
+    `# Exercise types\nAllowed types for this course: ${ctx.types.map((t) => `\`${t}\``).join(", ")}. Use no others.\n\n` +
+      ctx.types.map(describeExerciseType).join("\n\n"),
+  ].join("\n\n");
+}
+
 /** Stable system prompt shared by every call of a job. */
 export function buildSystemPrompt(ctx: PromptContext): string {
   return [
@@ -128,12 +144,7 @@ Duolingo-style science learning app used on laptops. Learners work through short
 You write the content as JSON; the app validates it and plays it as-is, so it must be correct, complete and
 self-contained.`,
     `# This course\n${describeCourse(ctx.params)}`,
-    CONTRACT,
-    QUALITY_RULES,
-    describeCast(),
-    describeSimModels(ctx.simModels),
-    `# Exercise types\nAllowed types for this course: ${ctx.types.map((t) => `\`${t}\``).join(", ")}. Use no others.\n\n` +
-      ctx.types.map(describeExerciseType).join("\n\n"),
+    buildContentReference(ctx),
   ].join("\n\n");
 }
 

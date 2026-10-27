@@ -538,3 +538,10 @@ _(Append dated one-line entries for any choice not covered above.)_
 **Admin**
 - Exercises are previewed with their real components in the locked "correct" state (an answer key), wrapped in `inert`.
 - Publishing is refused while automatic checks report problems. Imports never overwrite an existing pack.
+
+**Agent API (October 2026)**
+- Outside AI agents write courses through `/api/agent` (REST) and `/api/agent/mcp` (MCP), using admin-issued keys (`ApiKey` table: `sci_` + 192 random bits, only the sha256 stored, revocable, optional drafts-only). Code lives in `src/server/agent/`; one service backs both transports.
+- The guide agents read is built from `buildContentReference` (shared with the generator's system prompt), so it never drifts from the registry.
+- Same checks as imports: schema errors reject the write; autoCheck problems are reported and block publishing; a published pack never takes a write with problems. Creates never overwrite (id gets a `-2` suffix). Agents read every pack but only change packs whose `generatedBy.source` is `"agent"`.
+- Courses are built incrementally (create with the first unit, then `PUT …/units/{unitId}`) because a whole course in one tool call is too large for many chat apps.
+- MCP is a small hand-written, stateless Streamable HTTP server (tools only, JSON replies, no SSE/sessions) instead of the MCP SDK, to avoid a dependency. Verified against the official SDK client. The key may ride in `?key=` on this endpoint only, because chat apps add connectors by URL and can't send headers.

@@ -1,11 +1,15 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import type { Exercise } from "@/content/registry";
 import { contentPackSchema, type ContentPack } from "@/content/schema/course";
 import { assertAdmin, loginAdmin, logoutAdmin } from "@/server/admin/auth";
 import { safeAdminNext } from "@/server/admin/token";
+import { createApiKey, revokeApiKey } from "@/server/agent/api-keys";
+import { buildAgentPrompt, mcpUrl } from "@/server/agent/guide";
+import { publicOrigin } from "@/server/agent/origin";
 import {
   cancelGenerationJob,
   checkPack,
@@ -240,4 +244,46 @@ export async function regenerateLessonAction(
   } catch (error) {
     return { ok: false, errors: [error instanceof Error ? error.message : "Regeneration failed."] };
   }
+}
+
+// ---------------------------------------------------------------- agent keys
+
+/** A new key and the ready-to-paste text built around it. Shown once. */
+export type NewAgentKey = {
+  name: string;
+  key: string;
+  canPublish: boolean;
+  prompt: string;
+  connectorUrl: string;
+  claudeCode: string;
+};
+
+export async function createAgentKeyAction(
+  _prev: { errors?: string[]; created?: NewAgentKey } | undefined,
+  formData: FormData,
+): Promise<{ errors?: string[]; created?: NewAgentKey }> {
+  await assertAdmin();
+  const name = str(formData.get("name"));
+  if (!name) return { errors: ["Give the key a name, e.g. the agent that will use it."] };
+  if (name.length > 60) return { errors: ["Keep the name under 60 characters."] };
+  const canPublish = formData.get("canPublish") === "on";
+  const { key } = await createApiKey({ name, canPublish });
+  const origin = publicOrigin(await headers());
+  revalidatePath("/admin/agents");
+  return {
+    created: {
+      name,
+      key,
+      canPublish,
+      prompt: buildAgentPrompt({ origin, key }),
+      connectorUrl: mcpUrl(origin, key),
+      claudeCode: `claude mcp add --transport http scientifically ${mcpUrl(origin)} --header "Authorization: Bearer ${key}"`,
+    },
+  };
+}
+
+export async function revokeAgentKeyAction(id: string): Promise<void> {
+  await assertAdmin();
+  await revokeApiKey(id);
+  revalidatePath("/admin/agents");
 }

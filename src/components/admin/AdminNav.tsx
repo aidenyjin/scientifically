@@ -16,6 +16,7 @@ const LINKS = [
     match: (p: string) => p.startsWith("/admin/generate"),
   },
   { href: "/admin/jobs", label: "Jobs", match: (p: string) => p.startsWith("/admin/jobs") },
+  { href: "/admin/agents", label: "Agents", match: (p: string) => p.startsWith("/admin/agents") },
 ];
 
 export function AdminNav() {

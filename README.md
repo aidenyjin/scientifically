@@ -54,6 +54,38 @@ answers are recomputed, simulation targets must be reachable). Failures are sent
 exact errors, up to two retries; anything still wrong is flagged for review. Prompts are built from code: the
 JSON Schema, each question type's examples and writing notes, the character cast and the simulation models.
 
+## Letting AI agents create courses
+
+The opposite direction also works: give an outside AI agent (Claude, ChatGPT, Cursor, Codex, your own script) a key
+for this app and it can write courses straight into Scientifically.
+
+1. Open **/admin → Agents** and create a key. Untick "Let this agent publish" to keep everything it writes as a
+   draft for you to review.
+2. The key is shown once, with three ready-to-copy options:
+   - **A message to paste into any agent that can make web requests** (Claude Code, Codex, Cursor, ChatGPT agent
+     mode…). It points the agent at the guide and the API.
+   - **A connector URL** (`/api/agent/mcp?key=…`) for chat apps that support custom MCP connectors (Claude, ChatGPT…).
+   - **A `claude mcp add` command** for Claude Code.
+3. Ask the agent for a course. It reads the guide (`GET /api/agent`): the same content contract, quality rules and
+   per-type examples the built-in generator uses. It then creates the course as a draft, adds a unit at a time,
+   fixes the problems the automatic checks report and publishes it.
+
+Agents get the same checks as imports: schema errors are rejected, and a course can't be published (or a live
+course changed) while any exercise fails its `autoCheck`. Agents can read every course but only change the ones
+made through the agent API. Revoking a key locks its agent out immediately. Cloud apps (Claude.ai, ChatGPT) can't
+reach `localhost`, so deploy the app first for those, or set `APP_URL` if the app runs behind a proxy.
+
+| Endpoint (`Authorization: Bearer <key>`) | What it does |
+|---|---|
+| `GET /api/agent` | The guide (Markdown) |
+| `GET /api/agent/schema` | JSON Schema of a pack |
+| `POST /api/agent/validate` | Check a pack without saving |
+| `GET /api/agent/packs` · `GET /api/agent/packs/{id}` | List courses · read one |
+| `POST /api/agent/packs` | Create a course (`{"pack", "status"?}`) |
+| `PUT /api/agent/packs/{id}/units/{unitId}` | Add or replace a unit (`{"unit", "position"?}`) |
+| `PATCH /api/agent/packs/{id}` | Replace a course and/or set its status |
+| `POST /api/agent/mcp` | The same operations as MCP tools (key in the header or `?key=`) |
+
 ## Environment variables
 
 | Variable | Purpose |
@@ -64,6 +96,7 @@ JSON Schema, each question type's examples and writing notes, the character cast
 | `ANTHROPIC_API_KEY` / `OPENAI_API_KEY` | Provider keys (server only) |
 | `ADMIN_PASSWORD` | Admin login. If unset, admin is open in development (with a banner) and disabled in production |
 | `AUTH_SECRET` | Signs session cookies; **required (16+ chars) in production** |
+| `APP_URL` | Optional public URL (e.g. `https://sci.example.com`) used in links given to AI agents; default: the request's host |
 
 Optional AI tuning: `AI_EFFORT`, `AI_FALLBACKS=off`, `AI_OUTPUT_MODE`, `ANTHROPIC_BASE_URL`, `OPENAI_BASE_URL`
 (see `.env.example`).
@@ -113,7 +146,7 @@ src/
   characters/     the cast, expressions, reactions, cosmetics
   sims/           simulation models (pure) and their animated visuals
   sound/          Web Audio sound effects
-  server/         db, auth, repos, services (wire game rules to the DB), ai pipeline, admin gate
+  server/         db, auth, repos, services (wire game rules to the DB), ai pipeline, agent API, admin gate
   components/     UI kit, lesson player, path, shell, shop/quests/leagues/profile/admin pieces
 docs/PLAN.md      the build plan and the decisions log
 ```
@@ -134,7 +167,7 @@ docs/PLAN.md      the build plan and the decisions log
 ## Tests
 
 - **Unit/integration (Vitest):** schemas, every exercise grader, the lesson engine, all game rules (including
-  time-zone and day-boundary cases), the AI pipeline with a mock provider, and lesson completion against a
-  temporary SQLite database.
+  time-zone and day-boundary cases), the AI pipeline with a mock provider, the agent API and its MCP server, and
+  lesson completion against a temporary SQLite database.
 - **End-to-end (Playwright):** guest onboarding → lesson → results → streak; the entire demo course; keyboard-only
-  play; out of hearts; admin generate → review → publish.
+  play; out of hearts; admin generate → review → publish; agent key → API-made course → publish → revoke.

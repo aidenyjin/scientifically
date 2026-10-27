@@ -9,6 +9,7 @@ import { Card } from "@/components/ui/Card";
 import { getCore } from "@/content/registry";
 import { contentPackSchema, formatIssues } from "@/content/schema/course";
 import { requireAdmin } from "@/server/admin/auth";
+import { parseAgentProvenance } from "@/server/agent/provenance";
 import { checkPack, parseGeneratedBy } from "@/server/ai";
 import { db } from "@/server/db";
 import { cn } from "@/lib/cn";
@@ -44,6 +45,7 @@ export default async function PackReviewPage({
   }
   const pack = parsed.data;
   const info = parseGeneratedBy(row.generatedBy);
+  const agent = parseAgentProvenance(row.generatedBy);
   const check = checkPack(pack);
 
   // Problems per exercise id (from autoCheck) and per lesson (from generation).
@@ -82,6 +84,12 @@ export default async function PackReviewPage({
             {info && (
               <span className="text-muted text-sm font-semibold">
                 · {info.provider} / {info.model}
+              </span>
+            )}
+            {agent && (
+              <span className="text-muted text-sm font-semibold">
+                · by agent “{agent.keyName}”
+                {agent.updatedBy ? `, last changed by “${agent.updatedBy}”` : ""}
               </span>
             )}
           </div>
