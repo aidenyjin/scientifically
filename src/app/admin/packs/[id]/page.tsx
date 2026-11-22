@@ -30,7 +30,7 @@ export default async function PackReviewPage({
   if (!parsed.success) {
     return (
       <Card>
-        <h1 className="font-display text-2xl font-semibold">{row.title}</h1>
+        <h1 className="font-heading text-[30px] leading-tight">{row.title}</h1>
         <p className="text-wrong-ink mt-2 font-bold">
           This pack&apos;s JSON doesn&apos;t match the schema:
         </p>
@@ -85,7 +85,7 @@ export default async function PackReviewPage({
               </span>
             )}
           </div>
-          <h1 className="font-display mt-2 text-3xl font-semibold">{pack.title}</h1>
+          <h1 className="font-heading mt-2 text-[40px] leading-tight font-light tracking-[-0.02em]">{pack.title}</h1>
           <p className="text-ink-soft mt-1 font-semibold">
             {pack.subject} · {pack.level} · {check.stats?.lessons} lessons ·{" "}
             {check.stats?.exercises} exercises
@@ -152,7 +152,7 @@ export default async function PackReviewPage({
                 <p className="text-muted text-xs font-bold tracking-wider uppercase">
                   {selected.unit.title}
                 </p>
-                <h2 className="font-display text-2xl font-semibold">{selected.lesson.title}</h2>
+                <h2 className="font-heading text-[30px] leading-tight">{selected.lesson.title}</h2>
                 <p className="text-ink-soft text-sm">{selected.lesson.objectives.join(" · ")}</p>
               </div>
               <div className="flex shrink-0 items-center gap-3">

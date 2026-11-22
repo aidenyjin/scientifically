@@ -47,7 +47,7 @@ export function JobLive({ initial }: { initial: JobSnapshot }) {
               </span>
             )}
           </div>
-          <h1 className="font-display mt-2 text-3xl font-semibold">
+          <h1 className="font-heading mt-2 text-[40px] leading-tight font-light tracking-[-0.02em]">
             {p ? `${p.subject}: ${p.topic}` : "Generation job"}
           </h1>
           {p && (

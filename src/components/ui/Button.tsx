@@ -12,20 +12,19 @@ export type ButtonVariant =
 export type ButtonSize = "sm" | "md" | "lg";
 
 const variants: Record<ButtonVariant, string> = {
-  primary: "bg-brand text-white [--edge:var(--brand-dark)]",
-  success: "bg-correct text-white [--edge:var(--correct-dark)]",
-  danger: "bg-wrong text-white [--edge:var(--wrong-dark)]",
-  secondary:
-    "bg-surface text-ink-soft border-2 border-line [--edge:var(--line)] hover:bg-surface-2",
-  ghost: "text-ink-soft hover:bg-surface-2 [--depth:0px]",
-  gem: "bg-gem text-white [--edge:var(--gem-dark)]",
-  streak: "bg-streak text-white [--edge:var(--streak-dark)]",
+  primary: "bg-ink text-panel [--edge:transparent]",
+  success: "bg-correct text-white [--edge:transparent]",
+  danger: "bg-wrong text-white [--edge:transparent]",
+  secondary: "bg-surface text-ink border border-line-strong [--edge:var(--line)] hover:bg-surface-2",
+  ghost: "text-ink-soft hover:bg-surface-2 [--edge:transparent] shadow-none",
+  gem: "bg-gem text-white [--edge:transparent]",
+  streak: "bg-streak text-white [--edge:transparent]",
 };
 
 const sizes: Record<ButtonSize, string> = {
-  sm: "h-9 px-3 text-sm rounded-xl [--depth:3px]",
-  md: "h-11 px-5 text-[15px] rounded-2xl",
-  lg: "h-13 px-7 text-base rounded-2xl",
+  sm: "h-9 px-3.5 text-sm rounded-[10px]",
+  md: "h-11 px-5 text-[15px] rounded-xl",
+  lg: "h-12 px-6 text-base rounded-xl",
 };
 
 export type ButtonProps = ButtonHTMLAttributes<HTMLButtonElement> & {
@@ -43,15 +42,15 @@ export function buttonClassName({
   className,
 }: { variant?: ButtonVariant; size?: ButtonSize; block?: boolean; disabled?: boolean; className?: string } = {}) {
   return cn(
-    "pressable hover-lift inline-flex items-center justify-center gap-2 font-display font-semibold tracking-wide whitespace-nowrap uppercase select-none",
+    "pressable hover-lift inline-flex items-center justify-center gap-2 font-sans font-medium whitespace-nowrap select-none",
     sizes[size],
-    disabled ? "border-0 bg-line text-muted [--edge:var(--line-strong)]" : variants[variant],
+    disabled ? "border-0 bg-surface-2 text-muted [--edge:transparent]" : variants[variant],
     block && "w-full",
     className,
   );
 }
 
-/** Chunky pressable button. Disabled state goes flat grey. */
+/** Pressable button: quiet fill, scales slightly on press. Disabled state goes flat. */
 export const Button = forwardRef<HTMLButtonElement, ButtonProps>(function Button(
   { variant = "primary", size = "md", block, className, disabled, ...props },
   ref,

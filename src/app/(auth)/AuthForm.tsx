@@ -36,7 +36,7 @@ export function AuthForm({
     <div className="mx-auto flex min-h-dvh max-w-[400px] flex-col justify-center px-6 py-12">
       <div className="flex flex-col items-center text-center">
         <Character id="lumi" expression={state?.error ? "surprised" : "happy"} size={110} animate />
-        <h1 className="font-display mt-3 text-3xl font-semibold">{title}</h1>
+        <h1 className="font-heading mt-3 text-[40px] leading-tight font-light tracking-[-0.02em]">{title}</h1>
         <p className="text-ink-soft mt-1 text-balance">{subtitle}</p>
       </div>
       <form ref={formRef} action={formAction} className="mt-8 grid gap-3">

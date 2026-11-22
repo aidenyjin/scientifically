@@ -272,17 +272,20 @@ freeze consumption, heart regeneration, league promotion, SRS ordering).
 
 ## 7. Characters (`src/characters/`)
 
-A cast drawn in code as SVG React components (simple rounded shapes, bold colours, big eyes —
-friendly and readable at 120px). The AI only references them by ID and writes their lines.
+A cast drawn in code as SVG React components, in one line style shared with the UI: a 2px ink
+outline, flat muted fills, small dot eyes, stick arms; each character is an object from its own
+science. Readable from 48px to 200px. The AI only references them by ID and writes their lines.
+IDs are stable (content packs and saved outfits use them); display names changed in the
+November 2026 redesign.
 
 | id | name | role / vibe |
 |---|---|---|
-| `lumi` | Lumi | main mascot: an axolotl in a lab coat; encouraging, a bit cheeky (the "Duo") |
-| `nova` | Nova | astrophysicist; dreamy, loves big numbers |
-| `pip` | Pip | a single cell; biology; excitable |
-| `bond` | Bond | a little molecule; chemistry; dry wit |
-| `volt` | Volt | a spark; electricity & energy; fast-talking |
-| `terra` | Terra | a rock with a hat; earth science; calm, patient |
+| `lumi` | Lumi | main mascot and lab guide: a magnifying glass; warm, observant, quietly funny |
+| `nova` | Orbi | space: a small ringed planet; dreamy, unhurried, loves enormous numbers |
+| `pip` | Cyto | biology: a single cell; curious, eager, a little breathless |
+| `bond` | Fizz | chemistry: a flask; dramatic about reactions, precise about details |
+| `volt` | Watt | electricity & energy: a light bulb; quick, upbeat, shortest path |
+| `terra` | Strata | earth science: a layered rock with a fossil; calm, patient |
 
 `cast.ts` holds `{id, name, field, personality, colors}` — `personality` is also fed to the AI prompt.
 
@@ -316,8 +319,11 @@ Cosmetics from the shop render as an overlay layer (hat/glasses/colour swap) on 
   synthesised. Respect the sound setting.
 - Respect `prefers-reduced-motion`. Visible focus rings. Dark mode via Tailwind `dark:`.
 
-Visual style: bright, rounded, chunky 3D-ish buttons (bottom border shadow), generous spacing,
-one display font + one body font from Google Fonts via `next/font`.
+Visual style (November 2026 redesign, "lab notebook"): warm paper neutrals, one ink-blue accent,
+quiet semantic colours; editorial serif headings (Newsreader) over a clean sans (Geist) with a mono
+(Geist Mono) for counts, units and equations; thin hairlines and soft shadows instead of chunky
+3D slabs; buttons acknowledge a press with a small scale. Fonts via `next/font`. Motion follows
+Emil Kowalski's rules: short, ease-out, transform/opacity only, more delight only for rare moments.
 
 ---
 
@@ -538,3 +544,16 @@ _(Append dated one-line entries for any choice not covered above.)_
 **Admin**
 - Exercises are previewed with their real components in the locked "correct" state (an answer key), wrapped in `inert`.
 - Publishing is refused while automatic checks report problems. Imports never overwrite an existing pack.
+
+### Redesign decisions (November 2026)
+
+- 2026-11-22: Moved away from the Duolingo look to "Version B" (lab-notebook editorial). Pre-redesign state is tagged `pre-redesign` for a clean revert.
+- 2026-11-22: Tokens in `globals.css` were remapped (warm neutrals, ink-blue `--brand`, new `--panel`, `--sage`, `--sage-ink`); components keep using the same token names, so most screens restyled without edits.
+- 2026-11-22: Fonts: `font-sans` and `font-display` are both Geist (display still marks UI numbers, inputs and tiles); new `font-heading` (Newsreader, use with `font-normal`/`font-light`) for questions and titles; `font-mono` is Geist Mono. Tailwind's semibold/bold/extrabold weights are lowered (540/600/650) because Geist reads heavy.
+- 2026-11-22: `.pressable` no longer draws a slab: a hairline in `--edge` and a scale(0.97) press. `--depth` is ignored. Because `.pressable` is unlayered CSS it beats shadow utilities; elements that need their own ring/shadow use `active:scale-*` instead of `.pressable`.
+- 2026-11-22: The cast was redrawn (same IDs, new names and art: Lumi, Orbi, Cyto, Fizz, Watt, Strata). Faces moved from big cartoon eyes to dot eyes driven by the same `FaceState` rig; `FaceSpec.ink` lets dark bodies (Orbi) draw a light face. Shop cosmetics were redrawn in the line style.
+- 2026-11-22: One character per screen. In lessons the guide (the exercise's character, else the lesson's first character, else Lumi) lives in the feedback footer and reacts there; the prompt is plain centred serif type. Dialogue exercises hide the footer guide since their speakers are on screen. On /learn the guide stands in the "Up next" scene instead of beside the path.
+- 2026-11-22: /learn opens with a greeting (client clock) and an "Up next" card whose scene (`UpNextScene`) draws the current unit's lessons as stops on a ridge over a dotted grid; the walked path draws in once per load (700ms). Units are cards that fold; only the unit holding the next lesson starts open.
+- 2026-11-22: Lesson progress is one dot per question; the current dot stretches into a bar (width transition). Above 20 questions it falls back to a thin bar.
+- 2026-11-22: Shop power-ups keep emoji in game data (`src/game/shop.ts` stays pure) but render with the app's own icons in `ShopItemCard`.
+

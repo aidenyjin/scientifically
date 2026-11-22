@@ -1,5 +1,5 @@
 /** Shield badge for a league tier. Colours climb from grey-blue (Quark) to cosmic purple (Galaxy). */
-const TIER_COLORS = ["#8fa3bf", "#5ccfff", "#2bc46b", "#14b8a6", "#ff9600", "#ff4b6e", "#1cb0f6", "#ffc800", "#a560e8", "#6c5ce7"];
+const TIER_COLORS = ["#9aa6b5", "#7fa7c9", "#7fa37a", "#5f8f88", "#c8692a", "#b4463b", "#3b6ea8", "#c29a1e", "#8a6fa8", "#2d4a7a"];
 
 export function LeagueBadge({ tier, size = 56, muted = false }: { tier: number; size?: number; muted?: boolean }) {
   const color = muted ? "var(--line-strong)" : TIER_COLORS[tier % TIER_COLORS.length];

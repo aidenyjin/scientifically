@@ -57,7 +57,7 @@ export default async function ShopPage() {
     <div className="grid gap-8">
       <header className="flex items-end justify-between">
         <div>
-          <h1 className="font-display text-3xl font-semibold">Shop</h1>
+          <h1 className="font-heading text-[40px] leading-tight font-light tracking-[-0.02em]">Shop</h1>
           <p className="mt-1 text-ink-soft">Spend gems on power-ups and outfits.</p>
         </div>
         <div className="flex items-center gap-2 rounded-2xl border-2 border-line bg-surface px-4 py-2 font-display text-xl font-bold text-gem">
@@ -85,7 +85,7 @@ export default async function ShopPage() {
       </div>
 
       <section>
-        <h2 className="font-display text-xl font-semibold">Power-ups</h2>
+        <h2 className="font-heading text-[26px] leading-tight">Power-ups</h2>
         <ul className="mt-2">
           {powerUps.map((item) => (
             <ShopItemCard key={item.id} item={toCard(item)} />
@@ -94,7 +94,7 @@ export default async function ShopPage() {
       </section>
 
       <section>
-        <h2 className="font-display text-xl font-semibold">Outfits</h2>
+        <h2 className="font-heading text-[26px] leading-tight">Outfits</h2>
         <p className="text-sm text-ink-soft">Dress up the cast — equip outfits from your profile.</p>
         <ul className="mt-2">
           {outfits.map((item) => (

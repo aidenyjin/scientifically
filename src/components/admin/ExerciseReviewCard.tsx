@@ -119,7 +119,7 @@ export function ExerciseReviewCard({
         label="Edit exercise JSON"
         className="max-w-3xl"
       >
-        <h2 className="font-display text-xl font-semibold">Edit exercise</h2>
+        <h2 className="font-heading text-[26px] leading-tight">Edit exercise</h2>
         <p className="text-ink-soft text-sm">Saved only if the whole pack still validates.</p>
         <textarea
           value={draft}
@@ -147,7 +147,7 @@ export function ExerciseReviewCard({
       </Modal>
 
       <Modal open={confirmDelete} onClose={() => setConfirmDelete(false)} label="Delete exercise">
-        <h2 className="font-display text-xl font-semibold">Delete this exercise?</h2>
+        <h2 className="font-heading text-[26px] leading-tight">Delete this exercise?</h2>
         <p className="text-ink-soft mt-1">
           It is removed from the pack. This can&apos;t be undone.
         </p>

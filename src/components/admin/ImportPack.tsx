@@ -38,7 +38,7 @@ export function ImportPack() {
         label="Import failed"
         className="max-w-xl"
       >
-        <h2 className="font-display text-wrong-ink text-xl font-semibold">
+        <h2 className="font-heading text-wrong-ink text-[26px] leading-tight">
           Couldn&apos;t import that pack
         </h2>
         <ul className="bg-surface-2 text-ink-soft mt-3 max-h-80 overflow-y-auto rounded-xl p-3 font-mono text-xs leading-relaxed">

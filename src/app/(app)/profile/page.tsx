@@ -25,7 +25,7 @@ export default async function ProfilePage() {
           {p.name.slice(0, 1).toUpperCase()}
         </div>
         <div className="min-w-0 flex-1">
-          <h1 className="truncate font-display text-3xl font-semibold" title={p.name}>
+          <h1 className="truncate font-heading text-[40px] leading-tight font-light tracking-[-0.02em]" title={p.name}>
             {p.name}
           </h1>
           <p className="truncate text-sm font-bold text-muted">

@@ -13,7 +13,7 @@ import { StatBar } from "./StatBar";
  */
 export function RightRail({ data, children }: { data: ShellData; children?: React.ReactNode }) {
   return (
-    <aside className="sticky top-0 hidden h-dvh w-[368px] shrink-0 flex-col gap-5 overflow-y-auto py-6 pr-8 pl-2 min-[1200px]:flex">
+    <aside className="sticky top-0 hidden h-[calc(100dvh-16px)] w-[340px] shrink-0 flex-col gap-4 overflow-y-auto py-8 pl-2 min-[1200px]:flex">
       <StatBar data={data} />
       {children}
       <LeagueCard league={data.league} />
@@ -21,7 +21,7 @@ export function RightRail({ data, children }: { data: ShellData; children?: Reac
       <Card>
         <div className="flex items-center justify-between">
           <CardTitle>Daily quests</CardTitle>
-          <Link href="/quests" className="text-brand text-sm font-bold hover:underline">
+          <Link href="/quests" className="text-ink-soft hover:text-ink text-sm font-medium underline-offset-4 hover:underline">
             View all
           </Link>
         </div>
@@ -39,7 +39,7 @@ export function DailyGoalCard({ xp, goal }: { xp: number; goal: number }) {
     <Card>
       <div className="flex items-center justify-between">
         <CardTitle>Daily goal</CardTitle>
-        <Link href="/profile#settings" className="text-brand text-sm font-bold hover:underline">
+        <Link href="/profile#settings" className="text-ink-soft hover:text-ink text-sm font-medium underline-offset-4 hover:underline">
           Edit
         </Link>
       </div>
@@ -48,17 +48,17 @@ export function DailyGoalCard({ xp, goal }: { xp: number; goal: number }) {
           <BoltIcon size={36} />
         </span>
         <div className="flex-1">
-          <p className="text-ink-soft mb-1.5 text-sm font-bold">
+          <p className="text-ink-soft mb-2 text-sm">
             {done ? "Goal reached — nice!" : `Earn ${goal} XP today`}
           </p>
           <ProgressBar
             value={xp / goal}
             color="var(--xp)"
-            height={14}
+            height={12}
             label="Daily goal progress"
           />
         </div>
-        <span className="text-muted w-14 text-right text-sm font-bold tabular-nums">
+        <span className="text-muted w-14 text-right font-mono text-xs tabular-nums">
           {Math.min(xp, goal)}/{goal}
         </span>
       </div>
@@ -72,7 +72,7 @@ function LeagueCard({ league }: { league: ShellData["league"] }) {
     <Card>
       <div className="flex items-center justify-between">
         <CardTitle>{league.tierName} League</CardTitle>
-        <Link href="/leagues" className="text-brand text-sm font-bold hover:underline">
+        <Link href="/leagues" className="text-ink-soft hover:text-ink text-sm font-medium underline-offset-4 hover:underline">
           View league
         </Link>
       </div>
@@ -80,13 +80,13 @@ function LeagueCard({ league }: { league: ShellData["league"] }) {
         <span className="shrink-0">
           <LeagueBadge tier={league.tier} size={46} />
         </span>
-        <p className="text-ink-soft text-[15px] font-semibold">
+        <p className="text-ink-soft text-[14px] leading-relaxed">
           {league.xp === 0 ? (
             "Finish a lesson to start climbing this week's table."
           ) : (
             <>
-              You&apos;re ranked <span className="text-ink font-bold">#{league.rank}</span> with{" "}
-              <span className="text-ink font-bold">{league.xp} XP</span>
+              You&apos;re ranked <span className="text-ink font-medium">#{league.rank}</span> with{" "}
+              <span className="text-ink font-medium">{league.xp} XP</span>
               {inZone ? " — in the promotion zone!" : "."}
             </>
           )}

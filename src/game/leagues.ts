@@ -103,7 +103,7 @@ const BOT_HANDLES = [
 
 // prettier-ignore
 const BOT_COLORS = [
-  "#58cc02", "#1cb0f6", "#ff9600", "#ce82ff", "#ff4b4b", "#ffc800", "#2bdcc6", "#ff86d0", "#7c6cff", "#a5734d",
+  "#5f8a5a", "#3b6ea8", "#c8692a", "#8a6fa8", "#b4463b", "#c29a1e", "#5f8f88", "#c27a8c", "#2d4a7a", "#8a6a4f",
 ] as const;
 
 export interface LeagueBot {

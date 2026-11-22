@@ -10,7 +10,7 @@ export default async function JobsPage() {
   const jobs = await listJobs(50);
   return (
     <div className="grid gap-6">
-      <h1 className="font-display text-3xl font-semibold">Generation jobs</h1>
+      <h1 className="font-heading text-[40px] leading-tight font-light tracking-[-0.02em]">Generation jobs</h1>
       {jobs.length === 0 ? (
         <Card className="py-14 text-center">
           <p className="font-display text-xl font-semibold">No jobs yet</p>

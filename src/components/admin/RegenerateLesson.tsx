@@ -46,7 +46,7 @@ export function RegenerateLesson({
         label="Regenerate lesson"
         className="max-w-lg"
       >
-        <h2 className="font-display text-xl font-semibold">Regenerate “{title}”</h2>
+        <h2 className="font-heading text-[26px] leading-tight">Regenerate “{title}”</h2>
         <p className="text-ink-soft mt-1 text-sm">
           The AI rewrites this lesson using the course outline. It replaces the current exercises.
         </p>

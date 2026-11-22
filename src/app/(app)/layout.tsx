@@ -16,8 +16,8 @@ export default async function AppLayout({ children }: { children: React.ReactNod
       <div className="flex min-h-dvh">
         <ClientSettings sound={settings.sound} reduceMotion={settings.reduceMotion} />
         <Sidebar />
-        <div className="flex min-w-0 flex-1 justify-center gap-10 px-8">
-          <main className="w-full max-w-[640px] min-w-0 py-6">
+        <div className="bg-panel border-line my-2 mr-2 flex min-w-0 flex-1 justify-center gap-10 rounded-[20px] border px-8">
+          <main className="w-full max-w-[640px] min-w-0 py-8">
             {/* Below 1200px the right rail hides; keep the stats visible. */}
             <div className="mb-6 min-[1200px]:hidden">
               <StatBar data={data} />

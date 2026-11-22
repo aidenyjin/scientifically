@@ -33,7 +33,7 @@ export default async function AdminPacksPage() {
     <div className="grid gap-6">
       <header className="flex items-end justify-between gap-4">
         <div>
-          <h1 className="font-display text-3xl font-semibold">Course packs</h1>
+          <h1 className="font-heading text-[40px] leading-tight font-light tracking-[-0.02em]">Course packs</h1>
           <p className="text-ink-soft mt-1">Generate with AI, review, then publish for learners.</p>
         </div>
         <div className="flex items-center gap-3">

@@ -2,7 +2,7 @@ import { ChevronsDown, ChevronsUp } from "lucide-react";
 import { cn } from "@/lib/cn";
 import type { LeagueView } from "@/server/services/leagues";
 
-const MEDALS = ["#ffc800", "#c0c7d6", "#e0955a"];
+const MEDALS = ["#c29a1e", "#a7adb6", "#b97b4f"];
 
 export function LeagueTable({ view }: { view: LeagueView }) {
   const { promote, demote } = view.zones;

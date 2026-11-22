@@ -1,6 +1,6 @@
 "use client";
 
-import { Check, Lock, Star } from "lucide-react";
+import { Check, Lock, Play } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useRef } from "react";
 import { TrophyIcon } from "@/components/icons";
@@ -8,19 +8,21 @@ import { buttonClassName } from "@/components/ui/Button";
 import { cn } from "@/lib/cn";
 import type { PathLesson } from "./types";
 
+/** Node diameters (px). The current one is larger so it reads first. */
+export const NODE_SIZE = { standard: 48, current: 60, checkpoint: 52 } as const;
+
 /**
- * One circular lesson node with its anchored popover. The popover scales
- * from the node (origin-aware), and closes on Escape / outside click.
+ * One lesson stop on the path, with its title beside it and an anchored
+ * popover. The popover scales from the node (origin-aware) and closes on
+ * Escape / outside click.
  */
 export function PathNode({
   lesson,
-  color,
   open,
   onToggle,
   onClose,
 }: {
   lesson: PathLesson;
-  color: string;
   open: boolean;
   onToggle: () => void;
   onClose: () => void;
@@ -32,7 +34,7 @@ export function PathNode({
   const current = lesson.state === "current";
   const done = lesson.state === "completed";
   const checkpoint = lesson.kind === "checkpoint";
-  const size = checkpoint ? 84 : 72;
+  const size = current ? NODE_SIZE.current : checkpoint ? NODE_SIZE.checkpoint : NODE_SIZE.standard;
 
   useEffect(() => {
     if (!open) return;
@@ -67,68 +69,78 @@ export function PathNode({
     window.scrollBy({ top: overflow, behavior: reduce ? "auto" : "smooth" });
   }, [open]);
 
-  const face = locked ? "var(--line)" : color;
-  const edge = locked ? "var(--line-strong)" : `color-mix(in oklab, ${color} 70%, black)`;
+  const status = checkpoint
+    ? done
+      ? "Review passed"
+      : "Unit review"
+    : done
+      ? "Done"
+      : current
+        ? "Up next"
+        : "Locked";
 
   return (
     <div
       ref={wrapRef}
-      className="relative flex flex-col items-center"
+      className="relative flex min-w-0 items-center gap-3"
       data-current={current || undefined}
     >
-      {current && !open && (
-        <div className="absolute -top-[46px] z-10 animate-[bob_2.4s_ease-in-out_infinite]">
-          <div
-            className="border-line bg-surface font-display shadow-card relative rounded-xl border-2 px-3 py-1.5 text-sm font-bold tracking-wide uppercase"
-            style={{ color }}
-          >
-            {lesson.number === 1 && !checkpoint ? "Start" : "Next"}
-            <span className="border-line bg-surface absolute -bottom-[7px] left-1/2 size-3 -translate-x-1/2 rotate-45 border-r-2 border-b-2" />
-          </div>
-        </div>
-      )}
-
-      <div className="relative" style={{ width: size, height: size }}>
-        {current && (
-          // Centred on the face *plus* its 7px 3D edge, so the ring looks even all round.
-          <span
-            aria-hidden
-            className="absolute rounded-full border-[6px] opacity-25"
-            style={{
-              borderColor: color,
-              top: -10,
-              left: -13.5,
-              width: size + 27,
-              height: size + 27,
-            }}
-          />
-        )}
-        <button
-          ref={buttonRef}
-          type="button"
-          onClick={onToggle}
-          aria-expanded={open}
-          aria-label={`${lesson.title}${locked ? " (locked)" : done ? " (completed)" : ""}`}
-          className="pressable relative grid size-full place-items-center rounded-full [--depth:7px]"
-          style={{ background: face, ["--edge" as string]: edge }}
-        >
-          <span
-            aria-hidden
-            className={cn(
-              "absolute top-[14%] left-[22%] h-[18%] w-[30%] -rotate-[30deg] rounded-full",
-              locked ? "bg-white/10" : "bg-white/25",
-            )}
-          />
-          {checkpoint ? (
-            <TrophyIcon size={40} className={cn(locked && "opacity-40 grayscale")} />
-          ) : locked ? (
-            <Lock className="text-muted size-7" strokeWidth={3} />
-          ) : done ? (
-            <Check className="size-9 text-white" strokeWidth={4} />
-          ) : (
-            <Star className="size-8 fill-white text-white" strokeWidth={2} />
+      {/* A fixed 60px slot, so every stop's centre lands on the path's spine. */}
+      <div className="grid size-[60px] shrink-0 place-items-center">
+        <div className="relative grid place-items-center" style={{ width: size, height: size }}>
+          {current && (
+            <span
+              aria-hidden
+              className="border-brand absolute inset-0 animate-[halo_2.6s_var(--ease-out)_infinite] rounded-full border-[1.5px]"
+            />
           )}
-        </button>
+          <button
+            ref={buttonRef}
+            type="button"
+            onClick={onToggle}
+            aria-expanded={open}
+            aria-label={`${lesson.title}${locked ? " (locked)" : done ? " (completed)" : ""}`}
+            className={cn(
+              "relative grid size-full place-items-center transition-transform duration-150 ease-[var(--ease-out)] active:scale-[0.95]",
+              checkpoint ? "rounded-[16px]" : "rounded-full",
+              done && "bg-brand text-white",
+              current &&
+                "bg-brand text-white shadow-[0_0_0_4px_var(--surface),0_0_0_5.5px_var(--brand)]",
+              locked && "bg-surface text-muted shadow-[inset_0_0_0_1.5px_var(--line-strong)]",
+            )}
+          >
+            {checkpoint ? (
+              <TrophyIcon size={24} className={cn(locked && "opacity-45 grayscale")} />
+            ) : locked ? (
+              <span className="font-mono text-[13px]">{lesson.number}</span>
+            ) : done ? (
+              <Check className="size-[18px]" strokeWidth={2.4} />
+            ) : (
+              <Play className="ml-0.5 size-[20px] fill-current" strokeWidth={0} />
+            )}
+          </button>
+        </div>
+      </div>
+
+      <div className="min-w-0">
+        <p
+          className={cn(
+            "truncate",
+            current ? "font-heading text-ink text-[22px] leading-tight" : "text-[15px]",
+            done && "text-ink-soft",
+            locked && "text-ink",
+          )}
+        >
+          {lesson.title}
+        </p>
+        <p
+          className={cn(
+            "mt-0.5 text-[11px] tracking-[0.14em] uppercase",
+            current ? "text-brand font-medium" : "text-muted",
+          )}
+        >
+          {status}
+        </p>
       </div>
 
       {open && (
@@ -136,55 +148,46 @@ export function PathNode({
           ref={popRef}
           role="dialog"
           aria-label={lesson.title}
-          className="animate-pop-in shadow-pop absolute top-[calc(100%+14px)] z-20 w-[300px] origin-top rounded-2xl p-4"
-          style={{
-            background: locked ? "var(--surface)" : color,
-            border: locked ? "2px solid var(--line)" : undefined,
-          }}
+          className="animate-pop-in shadow-pop border-line bg-surface absolute top-[calc(100%+12px)] left-0 z-20 w-[300px] origin-top-left rounded-2xl border p-5"
         >
-          <span
-            aria-hidden
-            className="absolute -top-2 left-1/2 size-4 -translate-x-1/2 rotate-45"
-            style={{
-              background: locked ? "var(--surface)" : color,
-              borderLeft: locked ? "2px solid var(--line)" : undefined,
-              borderTop: locked ? "2px solid var(--line)" : undefined,
-            }}
-          />
-          <div className={cn("relative", locked ? "text-ink" : "text-white")}>
-            <p className="font-display text-lg font-semibold">{lesson.title}</p>
-            <p className={cn("text-sm font-bold", locked ? "text-muted" : "text-white/80")}>
-              {checkpoint ? "Unit checkpoint" : `Lesson ${lesson.number} of ${lesson.of}`}
+          <p className="text-muted text-[11px] font-medium tracking-[0.14em] uppercase">
+            {checkpoint ? "Unit review" : `Lesson ${lesson.number} of ${lesson.of}`}
+          </p>
+          <p className="font-heading mt-1.5 text-[24px] leading-tight">{lesson.title}</p>
+          {!locked && lesson.objectives.length > 0 && (
+            <ul className="text-ink-soft mt-3 grid gap-1 text-sm">
+              {lesson.objectives.slice(0, 3).map((o) => (
+                <li key={o} className="flex gap-2">
+                  <span
+                    aria-hidden
+                    className="bg-line-strong mt-[7px] size-1.5 shrink-0 rounded-full"
+                  />
+                  {o}
+                </li>
+              ))}
+            </ul>
+          )}
+          {locked ? (
+            <p className="text-muted mt-3 flex items-center gap-2 text-sm">
+              <Lock className="size-4" strokeWidth={1.8} /> Finish the lessons before this one to
+              unlock it.
             </p>
-            {!locked && lesson.objectives.length > 0 && (
-              <ul className="mt-2 grid gap-0.5 text-sm font-semibold text-white/90">
-                {lesson.objectives.slice(0, 3).map((o) => (
-                  <li key={o}>• {o}</li>
-                ))}
-              </ul>
-            )}
-            {locked ? (
-              <p className="text-muted mt-3 text-sm font-semibold">
-                Complete the lessons before this to unlock it.
-              </p>
-            ) : (
-              <Link
-                href={`/lesson/${lesson.id}`}
-                className={buttonClassName({
-                  block: true,
-                  variant: "secondary",
-                  className: "mt-4 border-0 bg-white [--edge:rgba(0,0,0,0.15)] hover:bg-white",
-                })}
-                style={{ color }}
-              >
-                {done
-                  ? "Practice again · +5 XP"
-                  : checkpoint
-                    ? "Start checkpoint"
-                    : "Start · +10 XP"}
-              </Link>
-            )}
-          </div>
+          ) : (
+            <Link
+              href={`/lesson/${lesson.id}`}
+              className={buttonClassName({
+                block: true,
+                variant: done ? "secondary" : "primary",
+                className: "mt-5",
+              })}
+            >
+              {done
+                ? "Practise again · +5 XP"
+                : checkpoint
+                  ? "Start review"
+                  : "Start lesson · +10 XP"}
+            </Link>
+          )}
         </div>
       )}
     </div>

@@ -50,7 +50,7 @@ export function CourseSwitcher({
         aria-expanded={open}
         aria-haspopup="listbox"
         title="Switch course"
-        className="border-line text-ink-soft hover:bg-surface-2 flex h-10 max-w-[170px] items-center gap-1 rounded-xl border-2 px-3 text-sm font-bold whitespace-nowrap transition-colors duration-150"
+        className="border-line bg-surface text-ink hover:bg-surface-2 flex h-9 max-w-[170px] items-center gap-1.5 rounded-[10px] border px-3 text-sm font-medium whitespace-nowrap transition-[background-color,transform] duration-150 active:scale-[0.97]"
       >
         <span className="truncate">{active?.subject ?? "No course"}</span>
         {packs.length > 1 && <ChevronDown className="size-4 shrink-0" />}

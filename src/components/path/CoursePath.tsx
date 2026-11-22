@@ -1,18 +1,21 @@
 "use client";
 
-import { BookOpen, Check, Lock, Star, X } from "lucide-react";
+import { BookOpen, Check, ChevronDown, Lock, Play, X } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { useCallback, useEffect, useState } from "react";
-import { Character } from "@/characters/Character";
-import { CHARACTER_IDS } from "@/content/schema/exercise-base";
+import { useCallback, useState } from "react";
 import { TrophyIcon } from "@/components/icons";
 import { Modal } from "@/components/ui/Modal";
 import { useHotkeys } from "@/lib/keyboard";
+import { cn } from "@/lib/cn";
 import { PathNode } from "./PathNode";
 import type { PathLesson, PathUnit } from "./types";
 
-/** Horizontal offsets (px) that make the path wind like a river. */
-const WAVE = [0, 52, 84, 52, 0, -52, -84, -52];
+/** Horizontal offsets (px) that make the path wind gently. */
+const WAVE = [0, 44, 68, 44, 0, -44, -68, -44];
+/** Height of one stop's row (px). */
+const ROW = 84;
+/** Where the path's spine sits, from the card's inner left edge (px). */
+const SPINE = 170;
 
 export function CoursePath({
   units,
@@ -24,12 +27,20 @@ export function CoursePath({
   const router = useRouter();
   const [openId, setOpenId] = useState<string | null>(null);
   const [guide, setGuide] = useState<PathUnit | null>(null);
+  // Units that are finished or not started yet start folded, so the open one leads.
+  const [folded, setFolded] = useState<Set<string>>(() => {
+    const hasCurrent = (u: PathUnit) => u.lessons.some((l) => l.state === "current");
+    if (!units.some(hasCurrent)) return new Set();
+    return new Set(units.filter((u) => !hasCurrent(u)).map((u) => u.id));
+  });
   const close = useCallback(() => setOpenId(null), []);
-
-  // Bring the current lesson into view on load.
-  useEffect(() => {
-    document.querySelector("[data-current]")?.scrollIntoView({ block: "center" });
-  }, []);
+  const toggleFold = (id: string) =>
+    setFolded((s) => {
+      const next = new Set(s);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
 
   // Laptop shortcut: Enter starts the next lesson when nothing is open.
   useHotkeys(
@@ -38,81 +49,73 @@ export function CoursePath({
   );
 
   return (
-    <div className="grid gap-14 pb-60">
-      {units.map((unit) => (
-        <section key={unit.id} aria-labelledby={`unit-${unit.id}`}>
-          {/* The sticky strip is page-coloured above and behind the banner so the path never peeks around it. */}
-          <div className="bg-bg sticky top-0 z-30 -mt-4 pt-4">
-            <header
-              className="flex items-center justify-between gap-4 rounded-2xl px-5 py-4 text-white shadow-[0_4px_0_var(--edge)]"
-              style={{
-                background: unit.color,
-                ["--edge" as string]: `color-mix(in oklab, ${unit.color} 72%, black)`,
-              }}
-            >
-              <div className="min-w-0">
-                <p className="font-display text-sm font-semibold tracking-wider text-white/80 uppercase">
-                  Unit {unit.index + 1} · {unit.completed}/{unit.lessons.length}
-                </p>
-                <h2 id={`unit-${unit.id}`} className="font-display truncate text-2xl font-semibold">
-                  {unit.title}
-                </h2>
-                <p className="truncate text-[15px] font-semibold text-white/85">
-                  {unit.description}
-                </p>
-              </div>
+    <div className="grid gap-4 pb-40">
+      {units.map((unit) => {
+        const isFolded = folded.has(unit.id);
+        return (
+          <section
+            key={unit.id}
+            aria-labelledby={`unit-${unit.id}`}
+            className="border-line bg-surface shadow-card rounded-3xl border"
+          >
+            <header className="flex items-center gap-3 px-7 py-6">
+              <button
+                type="button"
+                onClick={() => toggleFold(unit.id)}
+                aria-expanded={!isFolded}
+                aria-controls={`unit-path-${unit.id}`}
+                className="group -m-2 flex min-w-0 flex-1 items-center gap-3 rounded-xl p-2 text-left"
+              >
+                <span className="min-w-0 flex-1">
+                  <span className="text-muted block text-[11px] font-medium tracking-[0.16em] uppercase">
+                    Unit {unit.index + 1}
+                  </span>
+                  <span
+                    id={`unit-${unit.id}`}
+                    className="font-heading mt-1 block truncate text-[28px] leading-tight tracking-[-0.01em]"
+                  >
+                    {unit.title}
+                  </span>
+                  <span className="text-ink-soft mt-0.5 block truncate text-sm">
+                    {unit.description}
+                  </span>
+                </span>
+                <span className="text-ink-soft shrink-0 font-mono text-xs tabular-nums">
+                  {unit.completed} / {unit.lessons.length}
+                </span>
+                <ChevronDown
+                  aria-hidden
+                  className={cn(
+                    "text-muted size-5 shrink-0 transition-transform duration-200 ease-[var(--ease-out)]",
+                    !isFolded && "rotate-180",
+                  )}
+                  strokeWidth={1.8}
+                />
+              </button>
               <button
                 type="button"
                 onClick={() => setGuide(unit)}
-                className="pressable font-display flex shrink-0 items-center gap-2 rounded-xl border-2 border-white/40 px-3 py-2 text-sm font-semibold tracking-wide uppercase [--depth:3px] [--edge:rgba(0,0,0,0.18)] hover:bg-white/10"
+                aria-label={`Unit ${unit.index + 1} guidebook`}
+                title="Guidebook"
+                className="pressable border-line text-ink-soft hover:bg-surface-2 hover:text-ink grid size-10 shrink-0 place-items-center rounded-xl border [--edge:transparent]"
               >
-                <BookOpen className="size-5" /> Guidebook
+                <BookOpen className="size-[18px]" strokeWidth={1.7} />
               </button>
             </header>
-          </div>
 
-          <ol className="relative mt-14 flex flex-col items-center gap-12">
-            {unit.lessons.map((lesson, i) => {
-              const offset = WAVE[i % WAVE.length];
-              const mascotHere = i === 2 && unit.lessons.length > 3;
-              return (
-                <li
-                  key={lesson.id}
-                  className="relative"
-                  // Each node is its own stacking context (transform), so lift the one with an open
-                  // popover above its siblings and the sticky unit banners (z-30).
-                  style={{
-                    transform: `translateX(${offset}px)`,
-                    zIndex: openId === lesson.id ? 40 : undefined,
-                  }}
-                >
-                  <PathNode
-                    lesson={lesson}
-                    color={unit.color}
-                    open={openId === lesson.id}
-                    onToggle={() => setOpenId((v) => (v === lesson.id ? null : lesson.id))}
-                    onClose={close}
-                  />
-                  {mascotHere && (
-                    <div
-                      aria-hidden
-                      className="pointer-events-none absolute top-1/2 -translate-y-1/2"
-                      style={{ [offset >= 0 ? "right" : "left"]: "calc(100% + 72px)" }}
-                    >
-                      <Character
-                        id={CHARACTER_IDS[unit.index % CHARACTER_IDS.length]}
-                        expression={unit.completed === unit.lessons.length ? "celebrate" : "happy"}
-                        size={128}
-                        animate
-                      />
-                    </div>
-                  )}
-                </li>
-              );
-            })}
-          </ol>
-        </section>
-      ))}
+            {!isFolded && (
+              <div id={`unit-path-${unit.id}`} className="border-line border-t px-7 pt-6 pb-8">
+                <UnitPath
+                  unit={unit}
+                  openId={openId}
+                  onToggle={(id) => setOpenId((v) => (v === id ? null : id))}
+                  onClose={close}
+                />
+              </div>
+            )}
+          </section>
+        );
+      })}
 
       <Modal
         open={guide !== null}
@@ -126,36 +129,35 @@ export function CoursePath({
               type="button"
               onClick={() => setGuide(null)}
               aria-label="Close guidebook"
-              className="text-muted hover:bg-surface-2 hover:text-ink-soft absolute top-4 right-4 grid size-10 place-items-center rounded-xl transition-colors duration-150"
+              className="text-muted hover:bg-surface-2 hover:text-ink absolute top-4 right-4 grid size-10 place-items-center rounded-xl transition-colors duration-150"
             >
-              <X className="size-6" strokeWidth={2.6} />
+              <X className="size-5" strokeWidth={1.8} />
             </button>
-            <p
-              className="font-display pr-10 text-sm font-semibold tracking-wider uppercase"
-              style={{ color: `color-mix(in oklab, ${guide.color} 82%, var(--ink))` }}
-            >
-              Unit {guide.index + 1} guidebook · {guide.completed}/{guide.lessons.length} done
+            <p className="text-muted pr-10 text-[11px] font-medium tracking-[0.16em] uppercase">
+              Unit {guide.index + 1} guidebook · {guide.completed} of {guide.lessons.length} done
             </p>
-            <h2 className="font-display mt-1 pr-10 text-2xl font-semibold">{guide.title}</h2>
+            <h2 className="font-heading mt-1.5 pr-10 text-[30px] leading-tight">{guide.title}</h2>
             <p className="text-ink-soft mt-1">{guide.description}</p>
-            <ol className="mt-5 -mr-2 grid max-h-[50vh] gap-3 overflow-y-auto pr-2">
+            <ol className="mt-5 -mr-2 grid max-h-[50vh] gap-2 overflow-y-auto pr-2">
               {guide.lessons.map((l) => (
                 <li
                   key={l.id}
-                  className="flex gap-3 rounded-2xl border-2 p-3"
-                  style={{ borderColor: l.state === "current" ? guide.color : "var(--line)" }}
+                  className={cn(
+                    "flex gap-3 rounded-2xl border p-3.5",
+                    l.state === "current" ? "border-brand bg-brand-soft/40" : "border-line",
+                  )}
                 >
-                  <GuideIcon lesson={l} color={guide.color} />
+                  <GuideIcon lesson={l} />
                   <div className="min-w-0 flex-1">
                     <p className="flex items-baseline justify-between gap-2">
-                      <span className="font-bold">{l.title}</span>
-                      <span className="text-muted shrink-0 text-xs font-bold uppercase">
-                        {l.kind === "checkpoint" ? "Checkpoint" : `Lesson ${l.number}`}
+                      <span className="font-medium">{l.title}</span>
+                      <span className="text-muted shrink-0 font-mono text-[11px]">
+                        {l.kind === "checkpoint" ? "Review" : `Lesson ${l.number}`}
                       </span>
                     </p>
-                    <ul className="text-ink-soft mt-1 text-sm">
+                    <ul className="text-ink-soft mt-1 grid gap-0.5 text-sm">
                       {l.objectives.map((o) => (
-                        <li key={o}>• {o}</li>
+                        <li key={o}>{o}</li>
                       ))}
                     </ul>
                   </div>
@@ -169,24 +171,114 @@ export function CoursePath({
   );
 }
 
+/** The winding line of stops for one unit, joined by a thin road. */
+function UnitPath({
+  unit,
+  openId,
+  onToggle,
+  onClose,
+}: {
+  unit: PathUnit;
+  openId: string | null;
+  onToggle: (id: string) => void;
+  onClose: () => void;
+}) {
+  const points = unit.lessons.map(
+    (_, i) => [SPINE + WAVE[i % WAVE.length], i * ROW + ROW / 2] as const,
+  );
+  const reach = (() => {
+    const cur = unit.lessons.findIndex((l) => l.state === "current");
+    if (cur >= 0) return cur;
+    const lastDone = unit.lessons.map((l) => l.state).lastIndexOf("completed");
+    return lastDone;
+  })();
+  const seg = (from: number, to: number) => {
+    let d = "";
+    for (let i = from; i < to; i++) {
+      const [x1, y1] = points[i];
+      const [x2, y2] = points[i + 1];
+      const my = (y1 + y2) / 2;
+      d += `${i === from ? `M${x1} ${y1}` : ""} C${x1} ${my} ${x2} ${my} ${x2} ${y2}`;
+    }
+    return d;
+  };
+  const n = unit.lessons.length;
+
+  return (
+    <ol className="relative" style={{ height: n * ROW }}>
+      <svg
+        aria-hidden
+        className="pointer-events-none absolute top-0 left-0 overflow-visible"
+        width="1"
+        height={n * ROW}
+      >
+        {reach < n - 1 && (
+          <path
+            d={seg(Math.max(0, reach), n - 1)}
+            fill="none"
+            stroke="var(--ink)"
+            strokeOpacity="0.3"
+            strokeWidth="1.5"
+            strokeDasharray="1.5 6"
+            strokeLinecap="round"
+          />
+        )}
+        {reach > 0 && (
+          <path
+            d={seg(0, reach)}
+            fill="none"
+            stroke="var(--brand)"
+            strokeWidth="1.75"
+            strokeLinecap="round"
+          />
+        )}
+      </svg>
+      {unit.lessons.map((lesson, i) => {
+        const [x, y] = points[i];
+        return (
+          <li
+            key={lesson.id}
+            className="absolute right-0 flex -translate-y-1/2 items-center"
+            style={{
+              top: y,
+              // PathNode centres its stop in a 60px slot, so the stop's centre sits on the spine.
+              left: x - 30,
+              zIndex: openId === lesson.id ? 40 : undefined,
+            }}
+          >
+            <PathNode
+              lesson={lesson}
+              open={openId === lesson.id}
+              onToggle={() => onToggle(lesson.id)}
+              onClose={onClose}
+            />
+          </li>
+        );
+      })}
+    </ol>
+  );
+}
+
 /** Small status disc for a guidebook row, matching the path node it describes. */
-function GuideIcon({ lesson, color }: { lesson: PathLesson; color: string }) {
+function GuideIcon({ lesson }: { lesson: PathLesson }) {
   const locked = lesson.state === "locked";
   return (
     <span
       role="img"
       aria-label={lesson.state === "completed" ? "Completed" : locked ? "Locked" : "Up next"}
-      className="mt-0.5 grid size-9 shrink-0 place-items-center rounded-full"
-      style={{ background: locked ? "var(--line)" : color }}
+      className={cn(
+        "mt-0.5 grid size-8 shrink-0 place-items-center rounded-full",
+        locked ? "bg-surface-2 text-muted" : "bg-brand text-white",
+      )}
     >
       {lesson.kind === "checkpoint" ? (
-        <TrophyIcon size={20} className={locked ? "opacity-40 grayscale" : undefined} />
+        <TrophyIcon size={18} className={locked ? "opacity-45 grayscale" : undefined} />
       ) : locked ? (
-        <Lock className="text-muted size-4" strokeWidth={3} />
+        <Lock className="size-3.5" strokeWidth={2} />
       ) : lesson.state === "completed" ? (
-        <Check className="size-5 text-white" strokeWidth={4} />
+        <Check className="size-4" strokeWidth={2.4} />
       ) : (
-        <Star className="size-4 fill-white text-white" strokeWidth={2} />
+        <Play className="ml-px size-3.5 fill-current" strokeWidth={0} />
       )}
     </span>
   );

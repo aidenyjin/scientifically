@@ -3,7 +3,7 @@
 import { Check } from "lucide-react";
 import { useEffect, useRef, useState, useTransition } from "react";
 import { buyItemAction } from "@/app/(app)/actions";
-import { GemIcon } from "@/components/icons";
+import { BoltIcon, GemIcon, HeartIcon, SnowflakeIcon } from "@/components/icons";
 import { Button } from "@/components/ui/Button";
 import { cn } from "@/lib/cn";
 import { play } from "@/sound/sfx";
@@ -25,6 +25,13 @@ export interface ShopCardItem {
   /** "active" highlights the status (e.g. a running boost). */
   statusTone?: "active";
 }
+
+/** Power-ups carry an emoji in the game data; draw them with the app's own icons instead. */
+const GLYPHS: Record<string, React.ReactNode> = {
+  "🧊": <SnowflakeIcon size={34} />,
+  "❤️": <HeartIcon size={34} />,
+  "⚡": <BoltIcon size={34} />,
+};
 
 export function ShopItemCard({ item, preview }: { item: ShopCardItem; preview?: React.ReactNode }) {
   const [pending, start] = useTransition();
@@ -49,12 +56,12 @@ export function ShopItemCard({ item, preview }: { item: ShopCardItem; preview?: 
   const statusText = flash?.text ?? item.status ?? "";
 
   return (
-    <li className="flex items-center gap-5 border-b-2 border-line py-5 last:border-b-0">
-      <div className="grid size-20 shrink-0 place-items-center overflow-hidden rounded-2xl bg-surface-2 text-[40px] leading-none">
-        {preview ?? <span aria-hidden>{item.icon}</span>}
+    <li className="border-line flex items-center gap-5 border-b py-5 last:border-b-0">
+      <div className="bg-surface-2 grid size-20 shrink-0 place-items-center overflow-hidden rounded-2xl text-[40px] leading-none">
+        {preview ?? GLYPHS[item.icon] ?? <span aria-hidden>{item.icon}</span>}
       </div>
       <div className="min-w-0 flex-1">
-        <p className="font-display text-lg font-semibold text-ink">{item.name}</p>
+        <p className="font-heading text-ink text-[22px] leading-tight">{item.name}</p>
         <p className="text-[15px] text-ink-soft">{item.description}</p>
         <p
           aria-live="polite"
@@ -76,7 +83,7 @@ export function ShopItemCard({ item, preview }: { item: ShopCardItem; preview?: 
       {item.blocked ? (
         <span
           className={cn(
-            "inline-flex h-11 min-w-32 shrink-0 items-center justify-center gap-1.5 rounded-2xl px-4 font-display text-[15px] font-semibold tracking-wide uppercase",
+            "inline-flex h-11 min-w-32 shrink-0 items-center justify-center gap-1.5 rounded-xl px-4 text-[15px] font-medium",
             item.blocked.tone === "owned" ? "bg-correct-soft text-correct-ink" : "bg-surface-2 text-muted",
           )}
         >

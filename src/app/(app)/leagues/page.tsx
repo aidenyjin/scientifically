@@ -27,7 +27,7 @@ export default async function LeaguesPage() {
             return <LeagueBadge key={offset} tier={i} size={offset === 0 ? 76 : 48} muted={i > view.tier} />;
           })}
         </div>
-        <h1 className="mt-4 font-display text-3xl font-semibold">{view.tierName} League</h1>
+        <h1 className="mt-4 font-heading text-[40px] leading-tight font-light tracking-[-0.02em]">{view.tierName} League</h1>
         <p className="mt-1 font-semibold text-ink-soft">
           Top {view.zones.promote} advance to the next league · <span className="text-streak">{formatLeft(view.timeLeftMs)} left</span>
         </p>

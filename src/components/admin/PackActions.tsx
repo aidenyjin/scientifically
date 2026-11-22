@@ -67,7 +67,7 @@ export function PackActions({ packId, status }: { packId: string; status: string
         </ul>
       )}
       <Modal open={confirm} onClose={() => setConfirm(false)} label="Delete pack">
-        <h2 className="font-display text-xl font-semibold">Delete this pack?</h2>
+        <h2 className="font-heading text-[26px] leading-tight">Delete this pack?</h2>
         <p className="text-ink-soft mt-1">
           Learners lose access to it immediately. Their XP stays, but lesson progress for this pack
           is orphaned. Export it first if you might want it back.

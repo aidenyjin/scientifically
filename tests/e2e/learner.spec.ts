@@ -3,17 +3,17 @@ import { playLessonCorrectly, startAsGuest, startNextLesson, stat } from "./help
 
 test("a new guest completes their first lesson and starts a streak", async ({ page }) => {
   await startAsGuest(page);
-  await expect(page.getByText("Tour of the lab")).toBeVisible();
+  await expect(page.getByText("Tour of the lab", { exact: true })).toBeVisible();
 
   // Enter starts the next lesson from the path.
   await startNextLesson(page);
   await playLessonCorrectly(page);
 
-  await expect(page.getByRole("heading", { name: /Perfect lesson!|Lesson complete!/ })).toBeVisible();
+  await expect(page.getByRole("heading", { name: /A perfect lesson|Lesson complete/ })).toBeVisible();
   const continueBtn = page.getByRole("button", { name: "Continue" });
   await expect(continueBtn).toBeEnabled({ timeout: 15_000 }); // waits for the server save
   await continueBtn.click();
-  await expect(page.getByText("day streak!")).toBeVisible();
+  await expect(page.getByRole("heading", { name: "day streak" })).toBeVisible();
   await page.getByRole("button", { name: "Continue" }).click();
 
   await page.waitForURL("**/learn");

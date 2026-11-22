@@ -13,7 +13,7 @@ export default async function AdminLoginPage({
   if (gate.kind === "disabled") {
     return (
       <div className="mx-auto mt-16 max-w-md text-center">
-        <h1 className="font-display text-2xl font-semibold">Admin is disabled</h1>
+        <h1 className="font-heading text-[30px] leading-tight">Admin is disabled</h1>
         <p className="text-ink-soft mt-2">
           Set <code className="bg-surface-2 rounded px-1">ADMIN_PASSWORD</code> in the server
           environment to enable the admin area.

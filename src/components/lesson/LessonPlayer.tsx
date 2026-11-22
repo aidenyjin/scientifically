@@ -11,7 +11,7 @@ import { Button } from "@/components/ui/Button";
 import { Kbd } from "@/components/ui/Kbd";
 import { Modal } from "@/components/ui/Modal";
 import { RichText } from "@/components/ui/RichText";
-import { isGraded, type Exercise } from "@/content/registry";
+import { exerciseCores, isGraded, type Exercise } from "@/content/registry";
 import { getView } from "@/content/registry.client";
 import { canCheck, currentExercise, lessonStats, progress, type LessonMode } from "@/engine/lesson";
 import { useLessonStore } from "@/engine/store";
@@ -246,14 +246,34 @@ export function LessonPlayer(props: LessonPlayerProps) {
   }
 
   const expression: Expression =
-    status === "correct" ? "happy" : status === "incorrect" ? "sad" : lesson.combo >= 5 ? "celebrate" : "neutral";
+    status === "correct"
+      ? "happy"
+      : status === "incorrect"
+        ? "sad"
+        : lesson.combo >= 5
+          ? "celebrate"
+          : hintOpen
+            ? "thinking"
+            : "neutral";
   const answerStatus: "answering" | "correct" | "incorrect" =
     status === "failed" || status === "complete" ? "incorrect" : status;
   const failedCharacter = exercises.find((e) => e.characterId)?.characterId ?? "lumi";
+  // The exercise's own character speaks for it; otherwise the lesson's guide keeps you company.
+  const guideId = exercise?.characterId ?? failedCharacter;
+  const typeLabel =
+    exercise && !["info_card", "dialogue", "multi_select"].includes(exercise.type)
+      ? exerciseCores.find((c) => c.type === exercise.type)?.label
+      : undefined;
 
   return (
     <div className="flex h-dvh flex-col bg-bg">
-      <LessonTopBar progress={progress(lesson)} hearts={lesson.hearts} combo={lesson.combo} onQuit={() => setQuitOpen(true)} />
+      <LessonTopBar
+        progress={progress(lesson)}
+        total={lesson.exercises.length}
+        hearts={lesson.hearts}
+        combo={lesson.combo}
+        onQuit={() => setQuitOpen(true)}
+      />
 
       <main
         ref={mainRef}
@@ -262,10 +282,10 @@ export function LessonPlayer(props: LessonPlayerProps) {
         {exercise && (
           <div
             key={`${lesson.position}-${exercise.id}`}
-            className="flex w-full max-w-[720px] animate-rise-in flex-col gap-7 [@media(max-height:840px)]:gap-5"
+            className="animate-rise-in my-auto flex w-full max-w-[640px] flex-col gap-8 [@media(max-height:840px)]:gap-5"
           >
-            <div className={cn("flex justify-between gap-4", exercise.characterId ? "items-center" : "items-start")}>
-              <PromptHeader exercise={exercise} expression={expression} />
+            <div className="flex flex-col items-center gap-3">
+              <PromptHeader exercise={exercise} eyebrow={typeLabel} />
               {exercise.hint && (
                 // Stays in the layout after checking (just hidden) so the prompt doesn't reflow.
                 <button
@@ -275,22 +295,21 @@ export function LessonPlayer(props: LessonPlayerProps) {
                   aria-keyshortcuts="H"
                   disabled={status !== "answering"}
                   className={cn(
-                    "flex shrink-0 items-center gap-1.5 rounded-xl px-3 py-2 text-sm font-bold text-brand transition-colors duration-150 hover:bg-brand-soft",
-                    exercise.characterId ? "mb-6" : "mt-1",
-                    hintOpen && "bg-brand-soft",
+                    "text-ink-soft hover:bg-surface-2 hover:text-ink flex shrink-0 items-center gap-1.5 rounded-full px-3 py-1.5 text-sm transition-[background-color,color,transform] duration-150 active:scale-[0.97]",
+                    hintOpen && "bg-surface-2 text-ink",
                     status !== "answering" && "invisible",
                   )}
                 >
-                  <Lightbulb className="size-4" strokeWidth={2.5} /> Hint <Kbd className="h-5 min-w-5 text-[11px]">H</Kbd>
+                  <Lightbulb className="size-4" strokeWidth={1.7} /> Hint <Kbd className="h-5 min-w-5">H</Kbd>
                 </button>
               )}
             </div>
             {hintOpen && exercise.hint && status === "answering" && (
               <div
                 role="note"
-                className="-mt-2 flex animate-pop-in items-start gap-2.5 rounded-2xl border-2 border-dashed border-brand/40 bg-brand-soft px-4 py-3 text-[15px] font-semibold text-ink [transform-origin:top_right] [@media(max-height:840px)]:-mt-1"
+                className="animate-pop-in border-line bg-surface text-ink -mt-3 flex items-start gap-2.5 rounded-2xl border px-4 py-3 text-[15px] shadow-card [transform-origin:top_center] [@media(max-height:840px)]:-mt-1"
               >
-                <Lightbulb className="mt-0.5 size-4 shrink-0 text-brand" strokeWidth={2.5} aria-hidden />
+                <Lightbulb className="text-xp-dark mt-0.5 size-4 shrink-0" strokeWidth={1.8} aria-hidden />
                 <RichText text={exercise.hint} />
               </div>
             )}
@@ -317,13 +336,15 @@ export function LessonPlayer(props: LessonPlayerProps) {
           onSkip={doSkip}
           onContinue={doContinue}
           raised={scrolledUnder}
+          // Dialogue already shows its speakers; one cast per screen.
+          character={exercise.type === "dialogue" ? undefined : { id: guideId, expression }}
         />
       )}
 
       <Modal open={quitOpen} onClose={() => setQuitOpen(false)} label="Quit lesson?">
         <div className="flex flex-col items-center text-center">
           <Character id={failedCharacter} expression="sad" size={110} />
-          <h2 className="mt-3 font-display text-2xl font-semibold">Wait, don&apos;t go!</h2>
+          <h2 className="font-heading mt-3 text-[30px] leading-tight">Wait, don&apos;t go!</h2>
           <p className="mt-2 text-ink-soft">You&apos;ll lose your progress in this lesson if you quit now.</p>
           <div className="mt-6 grid w-full gap-3">
             <Button ref={keepLearningRef} size="lg" block onClick={() => setQuitOpen(false)}>
@@ -339,7 +360,7 @@ export function LessonPlayer(props: LessonPlayerProps) {
       <Modal open={status === "failed"} onClose={quit} label="Out of hearts">
         <div className="flex flex-col items-center text-center">
           <Character id={failedCharacter} expression={reactionFor("failed", failedCharacter).expression} size={110} />
-          <h2 className="mt-3 font-display text-2xl font-semibold">You ran out of hearts</h2>
+          <h2 className="font-heading mt-3 text-[30px] leading-tight">You ran out of hearts</h2>
           <p className="mt-2 text-ink-soft">Refill to keep going, or take a break — hearts come back over time.</p>
           <div className="mt-5 flex items-center gap-1">
             {Array.from({ length: GAME.hearts.max }, (_, i) => (

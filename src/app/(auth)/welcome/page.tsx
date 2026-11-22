@@ -28,7 +28,7 @@ export default async function WelcomePage() {
           ))}
         </div>
         <div className="text-center md:text-left">
-          <h1 className="animate-rise-in font-display text-ink text-[36px] leading-[1.1] font-semibold text-balance md:text-[44px]">
+          <h1 className="animate-rise-in font-heading text-ink text-[40px] leading-[1.08] font-light tracking-[-0.02em] text-balance md:text-[52px]">
             The fun, <span className="whitespace-nowrap">bite-sized</span> way to{" "}
             <span className="text-brand">learn science</span>.
           </h1>

@@ -12,13 +12,13 @@ export default async function QuestsPage() {
   const done = quests.filter((q) => q.completed).length;
   return (
     <div className="grid gap-8">
-      <header className="flex items-center gap-6 rounded-3xl bg-streak px-7 py-6 text-white shadow-[0_4px_0_var(--streak-dark)]">
+      <header className="border-line bg-surface shadow-card flex items-center gap-6 rounded-3xl border px-7 py-6">
         <div className="flex-1">
-          <p className="font-display text-sm font-semibold tracking-wider text-white/80 uppercase">Daily quests</p>
-          <h1 className="mt-1 font-display text-3xl font-semibold">
+          <p className="text-ink-soft text-[11px] font-medium tracking-[0.16em] uppercase">Daily quests</p>
+          <h1 className="mt-1 font-heading text-[40px] leading-tight font-light tracking-[-0.02em]">
             {done === quests.length ? "All done — legendary!" : `${done} of ${quests.length} complete`}
           </h1>
-          <p className="mt-1 font-semibold text-white/90">
+          <p className="text-ink-soft mt-1">
             {done === quests.length ? "Come back tomorrow for new quests." : "Finish quests to win gems. New quests every day."}
           </p>
         </div>
@@ -26,14 +26,14 @@ export default async function QuestsPage() {
       </header>
       <Card>
         <div className="flex items-center justify-between">
-          <h2 className="font-display text-xl font-semibold">Today</h2>
+          <h2 className="font-heading text-[26px] leading-tight">Today</h2>
           <MidnightCountdown timeZone={user.timezone} />
         </div>
         <div className="mt-2">
           <QuestList quests={quests} />
         </div>
       </Card>
-      <p className="text-center text-sm font-semibold text-muted">Rewards are added to your gems automatically.</p>
+      <p className="text-muted text-center text-sm">Rewards are added to your gems automatically.</p>
     </div>
   );
 }

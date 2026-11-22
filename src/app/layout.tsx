@@ -1,9 +1,15 @@
 import type { Metadata } from "next";
-import { Fredoka, Nunito } from "next/font/google";
+import { Geist, Geist_Mono, Newsreader } from "next/font/google";
 import "./globals.css";
 
-const fredoka = Fredoka({ subsets: ["latin"], variable: "--font-fredoka", weight: ["400", "500", "600", "700"] });
-const nunito = Nunito({ subsets: ["latin"], variable: "--font-nunito", weight: ["500", "600", "700", "800"] });
+const geist = Geist({ subsets: ["latin"], variable: "--font-geist" });
+const geistMono = Geist_Mono({ subsets: ["latin"], variable: "--font-geist-mono" });
+const newsreader = Newsreader({
+  subsets: ["latin"],
+  variable: "--font-newsreader",
+  style: ["normal", "italic"],
+  axes: ["opsz"],
+});
 
 export const metadata: Metadata = {
   title: "Scientifically",
@@ -12,7 +18,7 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" className={`${fredoka.variable} ${nunito.variable}`}>
+    <html lang="en" className={`${geist.variable} ${geistMono.variable} ${newsreader.variable}`}>
       <body className="min-h-dvh">{children}</body>
     </html>
   );

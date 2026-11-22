@@ -10,8 +10,8 @@ export function InfoCardView({ exercise, onChange }: ExerciseProps<InfoCard, Inf
   useEffect(() => onChange({}), [exercise.id, onChange]);
 
   return (
-    <article className="rounded-3xl border-2 border-line bg-surface p-7 shadow-card">
-      <h2 className="font-display text-3xl font-semibold text-ink">{exercise.title}</h2>
+    <article className="border-line bg-surface shadow-card rounded-3xl border p-8">
+      <h2 className="font-heading text-ink text-[32px] leading-tight tracking-[-0.015em]">{exercise.title}</h2>
       <div className="mt-4 grid gap-3 text-[17px] leading-relaxed text-ink-soft">
         {exercise.body.map((p, i) => (
           <p key={i} className="animate-rise-in" style={{ animationDelay: `${i * 60}ms` }}>
@@ -20,8 +20,10 @@ export function InfoCardView({ exercise, onChange }: ExerciseProps<InfoCard, Inf
         ))}
       </div>
       {exercise.keyFact && (
-        <div className="mt-6 flex gap-3 rounded-2xl bg-brand-soft p-4 text-[16px] font-semibold text-ink">
-          <span aria-hidden className="text-xl leading-none">💡</span>
+        <div className="bg-sage text-ink mt-6 flex gap-3 rounded-2xl p-4 text-[16px]">
+          <span aria-hidden className="text-sage-ink mt-0.5 shrink-0 text-[11px] font-medium tracking-[0.16em] uppercase">
+            Key fact
+          </span>
           <RichText text={exercise.keyFact} />
         </div>
       )}

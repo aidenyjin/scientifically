@@ -1,89 +1,116 @@
 @import "tailwindcss";
 
 /*
- * Design tokens. Components use these via Tailwind utilities (bg-surface,
- * text-ink, border-line, ...). Dark mode swaps the variables, so components
- * rarely need `dark:` variants.
+ * Design tokens (Version B: "lab notebook"). Warm paper neutrals, one ink-blue
+ * accent, quiet semantic colours. Components use these via Tailwind utilities
+ * (bg-surface, text-ink, border-line, ...). Dark mode swaps the variables, so
+ * components rarely need `dark:` variants.
  */
 :root {
-  --bg: #f6f6fb;
+  --bg: #f4f2ee;
+  --panel: #faf9f7;
   --surface: #ffffff;
-  --surface-2: #f1f1f8;
-  --line: #e4e4ee;
-  --line-strong: #d2d2e0;
-  --ink: #2d2d3f;
-  --ink-soft: #55556b;
-  --muted: #8b8ba3;
+  --surface-2: #f1eee8;
+  --line: #ece8e2;
+  --line-strong: #ddd8cf;
+  --ink: #1f1d1a;
+  --ink-soft: #5e5951;
+  --muted: #716b64;
 
-  --brand: #6c5ce7;
-  --brand-dark: #5241c9;
-  --brand-soft: #eeebff;
+  --brand: #2d4a7a;
+  --brand-dark: #1f3558;
+  --brand-soft: #e4eaf3;
 
-  --correct: #2bc46b;
-  --correct-dark: #1f9b53;
-  --correct-soft: #dcfbe8;
-  --correct-ink: #137a3e;
+  --correct: #2e6b45;
+  --correct-dark: #23573a;
+  --correct-soft: #e8f1ea;
+  --correct-ink: #1f4d31;
 
-  --wrong: #ff4b4b;
-  --wrong-dark: #d33434;
-  --wrong-soft: #ffe3e3;
-  --wrong-ink: #b42323;
+  --wrong: #b4463b;
+  --wrong-dark: #8e3229;
+  --wrong-soft: #f8ebe8;
+  --wrong-ink: #7a2a22;
 
-  --gem: #1cb0f6;
-  --gem-dark: #1590cc;
-  --streak: #ff9600;
-  --streak-dark: #e07f00;
-  --xp: #ffc800;
-  --xp-dark: #e0a800;
-  --heart: #ff4b6e;
-  --freeze: #5ccfff;
+  --gem: #3b6ea8;
+  --gem-dark: #2c5584;
+  --streak: #c8692a;
+  --streak-dark: #a4531e;
+  --xp: #c29a1e;
+  --xp-dark: #9c7a12;
+  --heart: #c2453f;
+  --freeze: #6f9cc2;
 
-  --shadow-card: 0 1px 0 rgb(20 20 50 / 0.04), 0 8px 24px -12px rgb(20 20 50 / 0.12);
-  --shadow-pop: 0 12px 40px -12px rgb(20 20 50 / 0.28);
+  --sage: #dce7d6;
+  --sage-ink: #3f5a3c;
+
+  --shadow-card: 0 1px 2px rgb(40 30 20 / 0.04), 0 12px 32px -20px rgb(40 30 20 / 0.18);
+  --shadow-pop: 0 1px 2px rgb(40 30 20 / 0.06), 0 18px 48px -18px rgb(40 30 20 / 0.3);
+  color-scheme: light;
 }
 
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
-    --bg: #12121c;
-    --surface: #1b1b29;
-    --surface-2: #232335;
-    --line: #2e2e44;
-    --line-strong: #3b3b56;
-    --ink: #ececf6;
-    --ink-soft: #c2c2d6;
-    --muted: #8686a3;
-    --brand: #8b7dff;
-    --brand-dark: #6a5ae6;
-    --brand-soft: #29264a;
-    --correct-soft: #15301f;
-    --correct-ink: #5fe39a;
-    --wrong-soft: #3a1c22;
-    --wrong-ink: #ff8a8a;
-    --shadow-card: 0 1px 0 rgb(0 0 0 / 0.3), 0 8px 24px -12px rgb(0 0 0 / 0.6);
+    --bg: #161513;
+    --panel: #1b1a18;
+    --surface: #23211e;
+    --surface-2: #2b2926;
+    --line: #34312d;
+    --line-strong: #46423c;
+    --ink: #eeeae3;
+    --ink-soft: #c4beb4;
+    --muted: #9b948a;
+    --brand: #93acd8;
+    --brand-dark: #7390c2;
+    --brand-soft: #263247;
+    --correct: #5fa97a;
+    --correct-dark: #478a5f;
+    --correct-soft: #1d2f23;
+    --correct-ink: #9ad4ae;
+    --wrong: #d06a5e;
+    --wrong-dark: #a9503f;
+    --wrong-soft: #3a2320;
+    --wrong-ink: #f0a69b;
+    --sage: #2c3a2b;
+    --sage-ink: #b9d0b3;
+    --shadow-card: 0 1px 0 rgb(0 0 0 / 0.3), 0 12px 32px -20px rgb(0 0 0 / 0.6);
+    --shadow-pop: 0 18px 48px -18px rgb(0 0 0 / 0.7);
+    color-scheme: dark;
   }
 }
 
 :root[data-theme="dark"] {
-  --bg: #12121c;
-  --surface: #1b1b29;
-  --surface-2: #232335;
-  --line: #2e2e44;
-  --line-strong: #3b3b56;
-  --ink: #ececf6;
-  --ink-soft: #c2c2d6;
-  --muted: #8686a3;
-  --brand: #8b7dff;
-  --brand-dark: #6a5ae6;
-  --brand-soft: #29264a;
-  --correct-soft: #15301f;
-  --correct-ink: #5fe39a;
-  --wrong-soft: #3a1c22;
-  --wrong-ink: #ff8a8a;
-  --shadow-card: 0 1px 0 rgb(0 0 0 / 0.3), 0 8px 24px -12px rgb(0 0 0 / 0.6);
+  --bg: #161513;
+  --panel: #1b1a18;
+  --surface: #23211e;
+  --surface-2: #2b2926;
+  --line: #34312d;
+  --line-strong: #46423c;
+  --ink: #eeeae3;
+  --ink-soft: #c4beb4;
+  --muted: #9b948a;
+  --brand: #93acd8;
+  --brand-dark: #7390c2;
+  --brand-soft: #263247;
+  --correct: #5fa97a;
+  --correct-dark: #478a5f;
+  --correct-soft: #1d2f23;
+  --correct-ink: #9ad4ae;
+  --wrong: #d06a5e;
+  --wrong-dark: #a9503f;
+  --wrong-soft: #3a2320;
+  --wrong-ink: #f0a69b;
+  --sage: #2c3a2b;
+  --sage-ink: #b9d0b3;
+  --shadow-card: 0 1px 0 rgb(0 0 0 / 0.3), 0 12px 32px -20px rgb(0 0 0 / 0.6);
+  --shadow-pop: 0 18px 48px -18px rgb(0 0 0 / 0.7);
+  color-scheme: dark;
 }
 
 @theme inline {
   --color-bg: var(--bg);
+  --color-panel: var(--panel);
+  --color-sage: var(--sage);
+  --color-sage-ink: var(--sage-ink);
   --color-surface: var(--surface);
   --color-surface-2: var(--surface-2);
   --color-line: var(--line);
@@ -111,8 +138,17 @@
   --color-heart: var(--heart);
   --color-freeze: var(--freeze);
 
-  --font-sans: var(--font-nunito), ui-rounded, system-ui, sans-serif;
-  --font-display: var(--font-fredoka), var(--font-nunito), ui-rounded, system-ui, sans-serif;
+  --font-sans: var(--font-geist), ui-sans-serif, system-ui, sans-serif;
+  /* UI labels, numbers, inputs and tiles (was the rounded display face). */
+  --font-display: var(--font-geist), ui-sans-serif, system-ui, sans-serif;
+  /* Editorial headings: questions, titles. Use with font-normal. */
+  --font-heading: var(--font-newsreader), "Iowan Old Style", Georgia, serif;
+  /* Geist reads heavy at 700; keep the weight scale editorial. */
+  --font-weight-semibold: 540;
+  --font-weight-bold: 600;
+  --font-weight-extrabold: 650;
+
+  --font-mono: var(--font-geist-mono), ui-monospace, "SF Mono", Menlo, monospace;
 
   --shadow-card: var(--shadow-card);
   --shadow-pop: var(--shadow-pop);
@@ -136,6 +172,12 @@ body {
   font-family: var(--font-sans);
 }
 
+h1,
+h2,
+h3 {
+  text-wrap: balance;
+}
+
 ::selection {
   background: var(--brand-soft);
   color: var(--ink);
@@ -143,31 +185,32 @@ body {
 
 @layer base {
   :focus-visible {
-    outline: 3px solid color-mix(in oklab, var(--brand) 55%, transparent);
+    outline: 2px solid color-mix(in oklab, var(--brand) 70%, transparent);
     outline-offset: 2px;
   }
 }
 
 /*
- * Chunky "3D" pressable surface. The bottom shadow is the depth; pressing
- * moves the face down into it. Transform only, so it stays on the GPU.
- * Customise with utilities: [--edge:<colour>] and [--depth:<length>]. The
- * variables are read with fallbacks (never set here) so utilities always win.
+ * Pressable surface. Quiet by design: a hairline in the --edge colour under
+ * the element and a small scale on press, so every tap is acknowledged.
+ * Transform only, so it stays on the GPU. [--edge:<colour>] tints the
+ * hairline (selected states); --depth is accepted for old call sites but no
+ * longer draws a slab. Variables are read with fallbacks, never set here.
  */
 .pressable {
-  box-shadow: 0 var(--depth, 4px) 0 var(--edge, var(--line-strong));
+  box-shadow: 0 1px 0 color-mix(in oklab, var(--edge, var(--line-strong)) 70%, transparent);
   transition:
-    transform 120ms var(--ease-out),
-    box-shadow 120ms var(--ease-out),
+    transform 160ms var(--ease-out),
+    box-shadow 160ms var(--ease-out),
     background-color 150ms ease,
     border-color 150ms ease,
-    color 150ms ease;
-  transform: translateY(0);
+    color 150ms ease,
+    opacity 150ms ease;
+  transform: scale(1);
 }
 .pressable:active:not(:disabled):not([aria-disabled="true"]) {
-  transform: translateY(var(--depth, 4px));
-  box-shadow: 0 0 0 var(--edge, var(--line-strong));
-  transition-duration: 60ms;
+  transform: scale(var(--press, 0.97));
+  transition-duration: 90ms;
 }
 .pressable:disabled,
 .pressable[aria-disabled="true"] {
@@ -176,7 +219,7 @@ body {
 
 @media (hover: hover) and (pointer: fine) {
   .hover-lift:hover {
-    filter: brightness(1.04);
+    filter: brightness(1.06);
   }
 }
 
@@ -261,6 +304,46 @@ body {
   }
   100% {
     transform: scale(1.45);
+    opacity: 0;
+  }
+}
+
+/* Up next scene: the walked path draws in, stops settle, the next stop breathes. */
+@keyframes draw-line {
+  from {
+    stroke-dashoffset: 1;
+  }
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+@keyframes stop-in {
+  from {
+    opacity: 0;
+    transform: scale(0.6);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+@keyframes guide-in {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+@keyframes halo {
+  0% {
+    transform: scale(1);
+    opacity: 0.5;
+  }
+  100% {
+    transform: scale(1.9);
     opacity: 0;
   }
 }

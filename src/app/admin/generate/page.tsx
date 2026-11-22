@@ -13,7 +13,7 @@ export default async function GeneratePage() {
   return (
     <div className="mx-auto grid max-w-3xl gap-6">
       <header>
-        <h1 className="font-display text-3xl font-semibold">Generate a course</h1>
+        <h1 className="font-heading text-[40px] leading-tight font-light tracking-[-0.02em]">Generate a course</h1>
         <p className="text-ink-soft mt-1">
           The AI writes an outline, then each lesson. Everything is validated; problems are flagged
           for review. The result is saved as a <b>draft</b> — nothing reaches learners until you

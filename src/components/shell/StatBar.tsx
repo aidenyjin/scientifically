@@ -17,7 +17,7 @@ function Stat({
     <span
       title={label}
       aria-label={label}
-      className="font-display hover:bg-surface-2 flex h-10 items-center gap-1.5 rounded-xl px-2.5 text-[17px] font-bold tabular-nums transition-colors duration-150"
+      className="hover:bg-surface-2 flex h-9 items-center gap-1.5 rounded-[10px] px-2.5 font-mono text-[14px] font-medium tabular-nums transition-colors duration-150"
       style={{ color }}
     >
       {icon}
@@ -33,20 +33,20 @@ export function StatBar({ data }: { data: ShellData }) {
       <div className="flex items-center">
         <Stat
           label={`${data.streak} day streak`}
-          color={data.streakActiveToday ? "var(--streak)" : "var(--muted)"}
-          icon={<FlameIcon size={26} muted={!data.streakActiveToday} />}
+          color={data.streakActiveToday ? "var(--ink)" : "var(--muted)"}
+          icon={<FlameIcon size={20} muted={!data.streakActiveToday} />}
           value={data.streak}
         />
         <Stat
           label={`${data.gems} gems`}
-          color="var(--gem)"
-          icon={<GemIcon size={26} />}
+          color="var(--ink)"
+          icon={<GemIcon size={20} />}
           value={data.gems}
         />
         <Stat
           label={`${data.hearts} hearts`}
-          color="var(--heart)"
-          icon={<HeartIcon size={26} />}
+          color="var(--ink)"
+          icon={<HeartIcon size={20} />}
           value={data.hearts}
         />
       </div>

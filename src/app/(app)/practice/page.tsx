@@ -39,7 +39,7 @@ export default async function PracticePage({ searchParams }: { searchParams: Pro
       <header className="flex items-center gap-6">
         <Character id="pip" expression="thinking" size={120} animate />
         <div>
-          <h1 className="font-display text-3xl font-semibold">Practice hub</h1>
+          <h1 className="font-heading text-[40px] leading-tight font-light tracking-[-0.02em]">Practice hub</h1>
           <p className="mt-1 text-ink-soft">
             Strengthen what you&apos;ve learned. Practice has unlimited hearts and earns {GAME.hearts.practiceRestore} back.
           </p>
@@ -69,7 +69,7 @@ export default async function PracticePage({ searchParams }: { searchParams: Pro
       {overview && overview.skills.length > 0 ? (
         <Card>
           <div className="flex items-baseline justify-between gap-4">
-            <h2 className="font-display text-xl font-semibold">Skill strength</h2>
+            <h2 className="font-heading text-[26px] leading-tight">Skill strength</h2>
             <p className="text-sm font-bold text-muted">Weakest first</p>
           </div>
           <ul className="mt-4 grid gap-3">
@@ -97,7 +97,7 @@ export default async function PracticePage({ searchParams }: { searchParams: Pro
             <Lock className="size-6 text-muted" strokeWidth={2.5} />
           </div>
           <div>
-            <h2 className="font-display text-lg font-semibold">Skill strength</h2>
+            <h2 className="font-heading text-[22px] leading-tight">Skill strength</h2>
             <p className="text-[15px] text-ink-soft">Your skills appear here as you finish lessons.</p>
           </div>
         </Card>
@@ -126,7 +126,7 @@ function PracticeCard({
 }) {
   return (
     <Card className="flex flex-col">
-      <h2 className="font-display text-xl font-semibold">{title}</h2>
+      <h2 className="font-heading text-[26px] leading-tight">{title}</h2>
       <p className="mt-1 flex-1 text-[15px] text-ink-soft">{ready ? body : emptyText}</p>
       {ready ? (
         <Link href={href} className={buttonClassName({ variant, block: true, className: "mt-4" })}>

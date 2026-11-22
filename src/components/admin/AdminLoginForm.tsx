@@ -21,7 +21,7 @@ export function AdminLoginForm({ next }: { next: string }) {
           <LockKeyhole className="size-5" strokeWidth={2.5} aria-hidden />
         </span>
         <div>
-          <h1 className="font-display text-2xl font-semibold">Admin login</h1>
+          <h1 className="font-heading text-[30px] leading-tight">Admin login</h1>
           <p className="text-ink-soft text-sm">Generate, review and publish course packs.</p>
         </div>
         <input type="hidden" name="next" value={next} />
