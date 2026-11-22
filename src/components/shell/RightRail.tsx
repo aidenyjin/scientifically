@@ -1,7 +1,6 @@
+import { ArrowRight } from "lucide-react";
 import Link from "next/link";
 import { BoltIcon } from "@/components/icons";
-import { LeagueBadge } from "@/components/leagues/LeagueBadge";
-import { QuestList } from "@/components/quests/QuestList";
 import { Card, CardTitle } from "@/components/ui/Card";
 import { ProgressBar } from "@/components/ui/ProgressBar";
 import type { ShellData } from "@/server/services/shell";
@@ -9,26 +8,30 @@ import { StatBar } from "./StatBar";
 
 /**
  * Right column on wide screens. Cards here are summaries; each links to its
- * full page. Later milestones add the league and quests cards.
+ * full page.
  */
 export function RightRail({ data, children }: { data: ShellData; children?: React.ReactNode }) {
   return (
     <aside className="sticky top-0 hidden h-[calc(100dvh-16px)] w-[340px] shrink-0 flex-col gap-4 overflow-y-auto py-8 pl-2 min-[1200px]:flex">
       <StatBar data={data} />
       {children}
-      <LeagueCard league={data.league} />
       <DailyGoalCard xp={data.xpToday} goal={data.dailyGoal} />
-      <Card>
-        <div className="flex items-center justify-between">
-          <CardTitle>Daily quests</CardTitle>
-          <Link href="/quests" className="text-ink-soft hover:text-ink text-sm font-medium underline-offset-4 hover:underline">
-            View all
-          </Link>
-        </div>
-        <div className="mt-4">
-          <QuestList quests={data.quests} compact />
-        </div>
-      </Card>
+      {data.pack && (
+        <Link
+          href={`/courses/${data.pack.id}`}
+          className="group border-line bg-surface shadow-card hover:border-line-strong block rounded-3xl border p-5 transition-[border-color,transform] duration-150 ease-[var(--ease-out)] active:scale-[0.99]"
+        >
+          <p className="text-ink-soft text-[11px] font-medium tracking-[0.16em] uppercase">Current course</p>
+          <p className="font-heading mt-1.5 text-xl leading-tight">{data.pack.title}</p>
+          <p className="text-ink-soft mt-3 flex items-center gap-1.5 text-sm">
+            See the full path
+            <ArrowRight
+              className="size-3.5 transition-transform duration-200 ease-[var(--ease-out)] group-hover:translate-x-0.5"
+              strokeWidth={1.8}
+            />
+          </p>
+        </Link>
+      )}
     </aside>
   );
 }
@@ -61,36 +64,6 @@ export function DailyGoalCard({ xp, goal }: { xp: number; goal: number }) {
         <span className="text-muted w-14 text-right font-mono text-xs tabular-nums">
           {Math.min(xp, goal)}/{goal}
         </span>
-      </div>
-    </Card>
-  );
-}
-
-function LeagueCard({ league }: { league: ShellData["league"] }) {
-  const inZone = league.rank <= league.promote && league.xp > 0;
-  return (
-    <Card>
-      <div className="flex items-center justify-between">
-        <CardTitle>{league.tierName} League</CardTitle>
-        <Link href="/leagues" className="text-ink-soft hover:text-ink text-sm font-medium underline-offset-4 hover:underline">
-          View league
-        </Link>
-      </div>
-      <div className="mt-3 flex items-center gap-4">
-        <span className="shrink-0">
-          <LeagueBadge tier={league.tier} size={46} />
-        </span>
-        <p className="text-ink-soft text-[14px] leading-relaxed">
-          {league.xp === 0 ? (
-            "Finish a lesson to start climbing this week's table."
-          ) : (
-            <>
-              You&apos;re ranked <span className="text-ink font-medium">#{league.rank}</span> with{" "}
-              <span className="text-ink font-medium">{league.xp} XP</span>
-              {inZone ? " — in the promotion zone!" : "."}
-            </>
-          )}
-        </p>
       </div>
     </Card>
   );

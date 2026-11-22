@@ -1,20 +1,22 @@
-import { ArrowRight } from "lucide-react";
+import { ArrowRight, HeartCrack } from "lucide-react";
 import Link from "next/link";
 import { Character } from "@/characters/Character";
 import { CAST } from "@/characters/cast";
 import { Greeting } from "@/components/home/Greeting";
-import { CoursePath } from "@/components/path/CoursePath";
-import type { PathUnit } from "@/components/path/types";
+import { StartShortcut } from "@/components/home/StartShortcut";
 import { UpNextScene } from "@/components/path/UpNextScene";
 import { buttonClassName } from "@/components/ui/Button";
+import { Kbd } from "@/components/ui/Kbd";
 import { ProgressBar } from "@/components/ui/ProgressBar";
 import { CHARACTER_IDS } from "@/content/schema/exercise-base";
-import { flatLessons, getActivePack } from "@/server/repo/packs";
-import { getCompletedLessonIds } from "@/server/repo/progress";
+import { getActivePack } from "@/server/repo/packs";
 import { requireUser } from "@/server/repo/users";
+import { getCoursePath } from "@/server/services/course";
 
-export default async function LearnPage() {
+/** Home: a greeting and the one next thing to do. The full path lives on the course page. */
+export default async function HomePage({ searchParams }: { searchParams: Promise<{ hearts?: string }> }) {
   const user = await requireUser();
+  const { hearts } = await searchParams;
   const pack = await getActivePack(user.activePackId);
 
   if (!pack) {
@@ -33,45 +35,7 @@ export default async function LearnPage() {
     );
   }
 
-  const done = await getCompletedLessonIds(user.id, pack.id);
-  // Lessons unlock strictly in order; the first incomplete one is current.
-  const currentLessonId = flatLessons(pack).find((l) => !done.has(l.lesson.id))?.lesson.id ?? null;
-  const units: PathUnit[] = pack.units.map((unit, index) => {
-    const standard = unit.lessons.filter((l) => l.kind === "standard").length;
-    const numbers = new Map<string, number>();
-    unit.lessons.filter((l) => l.kind === "standard").forEach((l, i) => numbers.set(l.id, i + 1));
-    return {
-      id: unit.id,
-      index,
-      title: unit.title,
-      description: unit.description,
-      color: unit.color ?? "var(--brand)",
-      completed: unit.lessons.filter((l) => done.has(l.id)).length,
-      lessons: unit.lessons.map((lesson) => {
-        const state = done.has(lesson.id)
-          ? "completed"
-          : lesson.id === currentLessonId
-            ? "current"
-            : "locked";
-        return {
-          id: lesson.id,
-          title: lesson.title,
-          kind: lesson.kind,
-          objectives: lesson.objectives,
-          state,
-          number: numbers.get(lesson.id) ?? standard,
-          of: standard,
-        };
-      }),
-    };
-  });
-
-  const total = units.reduce((n, u) => n + u.lessons.length, 0);
-  const finished = units.reduce((n, u) => n + u.completed, 0);
-  // The unit in focus: the one holding the next lesson, else the last one.
-  const focus =
-    units.find((u) => u.lessons.some((l) => l.state === "current")) ?? units[units.length - 1];
-  const next = focus?.lessons.find((l) => l.state === "current") ?? null;
+  const { focus, next, total, finished } = await getCoursePath(user.id, pack);
   const guideId = CHARACTER_IDS[(focus?.index ?? 0) % CHARACTER_IDS.length];
   const guide = CAST[guideId];
 
@@ -82,11 +46,25 @@ export default async function LearnPage() {
           <Greeting name={user.name} />
         </h1>
         <p className="text-ink-soft">
-          {next
-            ? "One lesson today keeps your streak going."
-            : "You've finished every lesson in this course."}
+          {next ? "One lesson today keeps your streak going." : "You've finished every lesson in this course."}
         </p>
       </header>
+
+      {hearts === "0" && (
+        <p
+          role="status"
+          className="border-wrong/20 bg-wrong-soft text-wrong-ink flex items-center gap-3 rounded-2xl border px-5 py-4 text-[15px]"
+        >
+          <HeartCrack className="size-5 shrink-0" strokeWidth={1.7} aria-hidden />
+          <span>
+            You&apos;re out of hearts. They come back over time, or you can refill them in the{" "}
+            <Link href="/shop" className="font-medium underline underline-offset-4">
+              Shop
+            </Link>
+            .
+          </span>
+        </p>
+      )}
 
       {focus && (
         <section
@@ -110,21 +88,18 @@ export default async function LearnPage() {
           />
           <div className="grid gap-2 px-1">
             <p className="text-ink-soft text-sm">
-              {pack.title} · Unit {focus.index + 1}: {focus.title} · with {guide.name}
+              <Link href={`/courses/${pack.id}`} className="hover:text-ink underline-offset-4 hover:underline">
+                {pack.title}
+              </Link>{" "}
+              · Unit {focus.index + 1}: {focus.title} · with {guide.name}
             </p>
-            <h2
-              id="up-next"
-              className="font-heading text-[38px] leading-[1.08] font-light tracking-[-0.015em]"
-            >
+            <h2 id="up-next" className="font-heading text-[38px] leading-[1.08] font-light tracking-[-0.015em]">
               {next ? next.title : focus.title}
             </h2>
             {next && next.objectives.length > 0 && (
               <ul className="mt-1 flex flex-wrap gap-2">
                 {next.objectives.slice(0, 3).map((o) => (
-                  <li
-                    key={o}
-                    className="bg-surface-2 text-ink-soft rounded-full px-3 py-1 text-[13px]"
-                  >
+                  <li key={o} className="bg-surface-2 text-ink-soft rounded-full px-3 py-1 text-[13px]">
                     {o}
                   </li>
                 ))}
@@ -133,31 +108,30 @@ export default async function LearnPage() {
           </div>
           <div className="border-line flex flex-wrap items-center gap-4 border-t px-1 pt-5">
             <div className="flex min-w-[200px] flex-1 items-center gap-3">
-              <ProgressBar
-                value={total ? finished / total : 0}
-                className="max-w-[140px]"
-                label="Course progress"
-              />
+              <ProgressBar value={total ? finished / total : 0} className="max-w-[140px]" label="Course progress" />
               <span className="text-ink-soft font-mono text-xs tabular-nums">
                 {finished} of {total} lessons
               </span>
             </div>
-            {next && (
-              <Link href={`/lesson/${next.id}`} className={buttonClassName({ size: "lg" })}>
-                {next.kind === "checkpoint" ? "Start review" : "Start lesson"}
-                <ArrowRight className="size-4" strokeWidth={1.8} />
+            {next ? (
+              <div className="flex items-center gap-3">
+                <span className="text-muted hidden items-center gap-1.5 text-xs lg:flex">
+                  <Kbd>Enter</Kbd>
+                </span>
+                <Link href={`/lesson/${next.id}`} data-current className={buttonClassName({ size: "lg" })}>
+                  {next.kind === "checkpoint" ? "Start review" : "Start lesson"}
+                  <ArrowRight className="size-4" strokeWidth={1.8} />
+                </Link>
+                <StartShortcut href={`/lesson/${next.id}`} />
+              </div>
+            ) : (
+              <Link href="/courses" className={buttonClassName({ size: "lg", variant: "secondary" })}>
+                Choose another course
               </Link>
             )}
           </div>
         </section>
       )}
-
-      <div className="grid gap-4">
-        <h2 className="text-ink-soft text-[11px] font-medium tracking-[0.16em] uppercase">
-          {pack.title}
-        </h2>
-        <CoursePath units={units} currentLessonId={currentLessonId} />
-      </div>
     </div>
   );
 }

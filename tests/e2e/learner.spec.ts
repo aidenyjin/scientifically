@@ -3,7 +3,7 @@ import { playLessonCorrectly, startAsGuest, startNextLesson, stat } from "./help
 
 test("a new guest completes their first lesson and starts a streak", async ({ page }) => {
   await startAsGuest(page);
-  await expect(page.getByText("Tour of the lab", { exact: true })).toBeVisible();
+  await expect(page.getByText(/Tour of the lab/).first()).toBeVisible();
 
   // Enter starts the next lesson from the path.
   await startNextLesson(page);
@@ -18,6 +18,9 @@ test("a new guest completes their first lesson and starts a streak", async ({ pa
 
   await page.waitForURL("**/learn");
   await expect(stat(page, "1 day streak")).toBeVisible();
+  // The finished lesson shows as done on the course's path.
+  await page.getByRole("link", { name: "Courses" }).click();
+  await page.getByRole("link", { name: /Continue/ }).first().click();
   await expect(page.getByRole("button", { name: /\(completed\)/ }).first()).toBeVisible();
 });
 

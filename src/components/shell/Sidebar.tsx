@@ -1,16 +1,14 @@
 "use client";
 
-import { Dumbbell, House, ScrollText, ShieldHalf, Store, UserRound } from "lucide-react";
+import { House, Library, Store, UserRound } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/cn";
 import { Logo } from "./Logo";
 
 const NAV = [
-  { href: "/learn", label: "Learn", icon: House },
-  { href: "/practice", label: "Practice", icon: Dumbbell },
-  { href: "/leagues", label: "Leagues", icon: ShieldHalf },
-  { href: "/quests", label: "Quests", icon: ScrollText },
+  { href: "/learn", label: "Home", icon: House },
+  { href: "/courses", label: "Courses", icon: Library },
   { href: "/shop", label: "Shop", icon: Store },
   { href: "/profile", label: "Profile", icon: UserRound },
 ] as const;

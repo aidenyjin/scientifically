@@ -5,7 +5,8 @@ import { ClientSettings } from "@/components/shell/ClientSettings";
 import type { Exercise } from "@/content/registry";
 import type { LessonMode } from "@/engine/lesson";
 import { now } from "@/lib/clock";
-import { findLesson, getActivePack } from "@/server/repo/packs";
+import { db } from "@/server/db";
+import { findLesson, getActivePack, getPack, listPacks } from "@/server/repo/packs";
 import { parseSettings, requireUser } from "@/server/repo/users";
 import { PRACTICE_LESSON_IDS } from "@/server/services/lesson-completion";
 import { syncPlayer } from "@/server/services/player";
@@ -31,21 +32,34 @@ export default async function LessonPage({ params }: { params: Promise<{ lessonI
   };
   if ((PRACTICE_LESSON_IDS as readonly string[]).includes(lessonId)) {
     const practice = await buildPractice(user, lessonId as PracticeKind, t);
-    if (!practice) redirect("/practice");
+    if (!practice) redirect("/learn");
     session = {
       packId: practice.packId,
       title: lessonId === "mistakes" ? "Mistakes review" : "Practice",
       mode: "practice",
       exercises: practice.exercises,
-      exitHref: "/practice",
+      exitHref: "/learn",
     };
   } else {
-    const pack = await getActivePack(user.activePackId);
-    if (!pack) notFound();
-    const found = findLesson(pack, lessonId);
-    if (!found) notFound();
-    // Out of hearts: practise to earn one back, or refill in the shop.
-    if (player.hearts <= 0) redirect("/practice?hearts=0");
+    // Usually the lesson is in the learner's current course. Starting one from
+    // another course's page switches to that course.
+    let pack = await getActivePack(user.activePackId);
+    let found = pack ? findLesson(pack, lessonId) : null;
+    if (!found) {
+      for (const row of await listPacks("published")) {
+        const other = row.id === pack?.id ? null : await getPack(row.id);
+        const hit = other ? findLesson(other, lessonId) : null;
+        if (other && hit) {
+          pack = other;
+          found = hit;
+          await db.user.update({ where: { id: user.id }, data: { activePackId: other.id } });
+          break;
+        }
+      }
+    }
+    if (!pack || !found) notFound();
+    // Out of hearts: back home with a note (hearts regenerate, or refill in the shop).
+    if (player.hearts <= 0) redirect("/learn?hearts=0");
     session = {
       packId: pack.id,
       title: found.lesson.title,

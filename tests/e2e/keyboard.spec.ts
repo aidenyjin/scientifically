@@ -40,7 +40,7 @@ test("running out of hearts shows the refill screen and gates lessons", async ({
   await page.waitForLoadState("networkidle");
   await expect(async () => {
     await page.keyboard.press("Enter");
-    await page.waitForURL("**/practice?hearts=0", { timeout: 2_000 });
+    await page.waitForURL("**/learn?hearts=0", { timeout: 2_000 });
   }).toPass({ timeout: 20_000 });
   await expect(page.getByText(/out of hearts/i)).toBeVisible();
 });

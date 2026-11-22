@@ -1,12 +1,11 @@
+import { BookOpen } from "lucide-react";
 import { BoltIcon, FlameIcon, SnowflakeIcon, TrophyIcon } from "@/components/icons";
-import { LeagueBadge } from "@/components/leagues/LeagueBadge";
 import { AchievementGrid } from "@/components/profile/AchievementGrid";
 import { OutfitPicker } from "@/components/profile/OutfitPicker";
 import { SettingsPanel } from "@/components/profile/SettingsPanel";
 import { StreakCalendar } from "@/components/profile/StreakCalendar";
 import { Card, CardTitle } from "@/components/ui/Card";
 import { ProgressBar } from "@/components/ui/ProgressBar";
-import { TIERS } from "@/game";
 import { now } from "@/lib/clock";
 import { requireUser } from "@/server/repo/users";
 import { getProfile } from "@/server/services/profile";
@@ -21,7 +20,7 @@ export default async function ProfilePage() {
   return (
     <div className="grid gap-6">
       <header className="flex items-center gap-5">
-        <div className="grid size-20 shrink-0 place-items-center rounded-full bg-brand font-display text-3xl font-bold text-white">
+        <div className="bg-brand-soft text-brand font-heading grid size-20 shrink-0 place-items-center rounded-full text-4xl">
           {p.name.slice(0, 1).toUpperCase()}
         </div>
         <div className="min-w-0 flex-1">
@@ -44,21 +43,16 @@ export default async function ProfilePage() {
       <section aria-label="Statistics" className="grid grid-cols-2 gap-3">
         <Stat icon={<FlameIcon size={30} muted={p.streak === 0} />} value={p.streak} label="Day streak" />
         <Stat icon={<BoltIcon size={30} />} value={p.totalXp} label="Total XP" />
-        <Stat
-          icon={<LeagueBadge tier={Math.max(0, TIERS.indexOf((p.league ?? "Quark") as (typeof TIERS)[number]))} size={28} />}
-          value={p.league ?? "—"}
-          label="Current league"
-        />
         <Stat icon={<TrophyIcon size={30} />} value={p.perfectLessons} label="Perfect lessons" />
-        <Stat icon={<span className="text-2xl">📚</span>} value={p.lessons} label="Lessons finished" />
+        <Stat icon={<BookOpen className="text-brand size-7" strokeWidth={1.6} />} value={p.lessons} label="Lessons finished" />
         <Stat icon={<SnowflakeIcon size={30} />} value={p.freezes} label="Streak freezes" />
       </section>
 
       <Card className="grid grid-cols-[1fr_300px] items-center gap-8">
         <div className="flex flex-col items-center text-center">
           <FlameIcon size={88} muted={p.streak === 0} />
-          <p className={`mt-1 font-display text-5xl font-bold tabular-nums ${p.streak > 0 ? "text-streak" : "text-muted"}`}>{p.streak}</p>
-          <p className="font-display text-lg font-semibold text-ink">day streak</p>
+          <p className={`font-heading mt-1 text-[64px] leading-none font-light tabular-nums ${p.streak > 0 ? "text-ink" : "text-muted"}`}>{p.streak}</p>
+          <p className="font-heading text-ink text-xl">day streak</p>
           <dl className="mt-4 grid w-full grid-cols-3 gap-2 text-center">
             <StreakFact label="Longest" value={p.longestStreak} />
             <StreakFact label={p.freezes === 1 ? "Freeze" : "Freezes"} value={p.freezes} />
