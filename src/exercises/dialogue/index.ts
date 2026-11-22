@@ -20,7 +20,7 @@ export const dialogue: ExerciseCore<Dialogue, DialogueResponse> = {
     {
       id: "dlg-osmosis-swelling",
       type: "dialogue",
-      prompt: "What is flooding into Pip?",
+      prompt: "What is flooding into Cyto?",
       lines: [
         {
           characterId: "pip",

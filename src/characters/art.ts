@@ -13,6 +13,8 @@ export interface FaceSpec {
   pupil: number;
   /** Colour of the skin around the eyes (eyelids are drawn in it). */
   skin: string;
+  /** Colour of the eyes, mouth line and brows (defaults to INK; light on dark bodies). */
+  ink?: string;
   mouth: { y: number; w: number; x?: number };
   blush: { color: string; dx: number; dy: number; rx: number; ry: number; base?: number };
   brow: { color: string; w: number; gap: number };

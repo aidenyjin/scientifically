@@ -1,102 +1,69 @@
 import type { ArtProps, CharacterArt } from "../art";
-import { Gloss, Shaded } from "../parts";
+import { INK, LINE } from "../parts";
 
-/** Volt — a hovering spark of pure energy with a lightning-bolt crest. */
-const C = {
-  skin: "#ffd23f",
-  shade: "#f5ab1f",
-  bolt: "#ff9f1c",
-  boltShade: "#ee7d00",
-  arm: "#f29a0c",
-};
+/** Watt (id "volt") — a bright bulb who always takes the shortest path. */
+const C = { glass: "#f5e3a1", base: "#cfc8ba", blush: "#df9a6c" };
 
-type P = [number, number];
-const lerp = (a: P, b: P, t: number): P => [a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t];
-const f = (p: P) => `${p[0].toFixed(2)} ${p[1].toFixed(2)}`;
+const GLASS =
+  "M60 26C77 26 89 39 89 55C89 66 83 73 77 79V88H43V79C37 73 31 66 31 55C31 39 43 26 60 26Z";
 
-/** A soft spark: rounded tips, gently rounded valleys. */
-function sparkPath(cx: number, cy: number, outer: number, inner: number, n: number, rot: number): string {
-  const pt = (deg: number, r: number): P => [cx + r * Math.cos((deg * Math.PI) / 180), cy + r * Math.sin((deg * Math.PI) / 180)];
-  const tips = Array.from({ length: n }, (_, i) => pt(rot + (i * 360) / n, outer));
-  const vals = Array.from({ length: n }, (_, i) => pt(rot + (i * 360) / n + 180 / n, inner));
-  let d = `M${f(lerp(vals[n - 1], tips[0], 0.2))}`;
-  for (let i = 0; i < n; i++) {
-    const t = tips[i];
-    const v = vals[i];
-    const next = tips[(i + 1) % n];
-    const prev = vals[(i + n - 1) % n];
-    d += `L${f(lerp(prev, t, 0.62))}Q${f(t)} ${f(lerp(t, v, 0.38))}`;
-    d += `L${f(lerp(t, v, 0.8))}Q${f(v)} ${f(lerp(v, next, 0.2))}`;
-  }
-  return `${d}Z`;
-}
-
-const SPARK = sparkPath(60, 60, 35, 27.5, 9, -90 + 180 / 9);
-const BOLT = "M65 4.5L49.5 25.5H58.5L53.5 41L71.5 18.5H62.5L68.5 4.5Z";
-
-function Back({ animated }: ArtProps) {
-  return (
-    <g className={animated ? "ch-flicker" : undefined}>
-      <path d="M17 44l5 3-2 3 5 3" fill="none" stroke={C.bolt} strokeWidth={2.2} strokeLinecap="round" strokeLinejoin="round" />
-      <path d="M101 74l4 2.5-2.5 2 4.5 3" fill="none" stroke={C.bolt} strokeWidth={2.2} strokeLinecap="round" strokeLinejoin="round" />
-    </g>
-  );
-}
-
-function Body({ uid }: ArtProps) {
-  return (
-    <>
-      <Shaded id={`${uid}-spark`} d={SPARK} fill={C.skin} shade={C.shade} dx={-2.5} dy={-4} />
-      <Gloss cx={45} cy={41} rx={8.5} ry={4.5} r={-35} opacity={0.6} />
-    </>
-  );
-}
-
-function Front({ uid, headwear }: ArtProps) {
+function Back({ headwear }: ArtProps) {
   if (headwear) return null;
   return (
-    <g transform="rotate(8 60 30)">
-      <Shaded id={`${uid}-bolt`} d={BOLT} fill={C.bolt} shade={C.boltShade} dx={-1} dy={-1.5} />
-      <path d={BOLT} fill="none" stroke={C.boltShade} strokeWidth={1.6} strokeLinejoin="round" />
-    </g>
+    <path
+      d="M60 12V18M25 25l4 4M95 25l-4 4M17 50h5M98 50h5"
+      stroke={INK}
+      strokeWidth={1.5}
+      strokeLinecap="round"
+    />
+  );
+}
+
+function Body(_: ArtProps) {
+  return (
+    <>
+      <path d={GLASS} fill={C.glass} stroke={INK} strokeWidth={LINE} strokeLinejoin="round" />
+      <path d="M53 82Q56.5 75 60 82T67 82" fill="none" stroke={INK} strokeWidth={1.2} opacity={0.45} />
+      <rect x={43} y={88} width={34} height={16} rx={4} fill={C.base} stroke={INK} strokeWidth={LINE} />
+      <path d="M43 96H77" stroke={INK} strokeWidth={1.3} />
+      <path d="M52 104H68L64 110.5H56Z" fill={INK} />
+    </>
   );
 }
 
 export const volt: CharacterArt = {
   face: {
-    eyeY: 58,
-    eyeDx: 12,
-    rx: 7.2,
-    ry: 8,
-    pupil: 5.6,
-    skin: C.skin,
-    mouth: { y: 72, w: 14 },
-    blush: { color: "#ff8a3d", dx: 20.5, dy: 9.5, rx: 4.8, ry: 3, base: 0.45 },
-    brow: { color: "#d98200", w: 7, gap: 3 },
+    eyeY: 56,
+    eyeDx: 8,
+    rx: 2.7,
+    ry: 3.1,
+    pupil: 2.7,
+    skin: C.glass,
+    mouth: { y: 65, w: 10 },
+    blush: { color: C.blush, dx: 15, dy: 6.5, rx: 3.8, ry: 2.2 },
+    brow: { color: INK, w: 6, gap: 3.5 },
   },
   arms: {
     shoulders: [
-      [31, 67],
-      [89, 67],
+      [33, 64],
+      [87, 64],
     ],
-    upper: 9,
-    fore: 9.5,
-    width: 4,
-    color: C.arm,
-    style: "zig",
-    hand: { r: 4, color: C.skin, outline: C.arm },
+    upper: 10,
+    fore: 10,
+    width: 2.2,
+    color: INK,
+    hand: { r: 2.2, color: INK },
   },
   anchors: {
-    top: [40, 32],
-    side: [94, 28],
-    hat: { x: 60, y: 29, r: -6, s: 1 },
-    neck: { x: 60, y: 87, s: 0.85 },
-    band: 33,
-    chin: [76, 79],
+    top: [60, 26],
+    side: [92, 28],
+    hat: { x: 60, y: 29, r: -4, s: 0.95 },
+    neck: { x: 60, y: 90, s: 0.75 },
+    band: 28,
+    chin: [70, 72],
   },
-  idle: "float",
-  shadow: 19,
+  idle: "bob",
+  shadow: 18,
   Back,
   Body,
-  Front,
 };

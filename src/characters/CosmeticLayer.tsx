@@ -25,6 +25,8 @@ export function resolveOutfit(items: readonly string[] | undefined): Outfit {
   return out;
 }
 
+const O = { stroke: INK, strokeWidth: 1.6, strokeLinejoin: "round" as const, strokeLinecap: "round" as const };
+
 function PartyHat({ uid }: { uid: string }) {
   const cone = "M-12.5 0L-1.2 -27.5Q0 -29.5 1.2 -27.5L12.5 0Q0 4 -12.5 0Z";
   return (
@@ -32,15 +34,13 @@ function PartyHat({ uid }: { uid: string }) {
       <clipPath id={`${uid}-ph`}>
         <path d={cone} />
       </clipPath>
-      <path d={cone} fill="#6c5ce7" />
+      <path d={cone} fill="#d9826b" />
       <g clipPath={`url(#${uid}-ph)`}>
-        <path d="M-20 -6L20 -16V-10L-20 0Z" fill="#ffc800" />
-        <path d="M-20 -19L20 -29V-23L-20 -13Z" fill="#ffc800" />
-        <path d="M4 -30L16 0H20V-30Z" fill="#000" opacity={0.14} />
+        <path d="M-20 -6L20 -16V-11L-20 -1Z" fill="#f2d48a" />
+        <path d="M-20 -19L20 -29V-24L-20 -14Z" fill="#f2d48a" />
       </g>
-      <path d="M-12.5 0Q0 4 12.5 0" fill="none" stroke="#ff86c8" strokeWidth={3} strokeLinecap="round" />
-      <circle cx={0} cy={-29} r={4.2} fill="#ff86c8" />
-      <circle cx={-1.3} cy={-30.3} r={1.4} fill="#fff" opacity={0.7} />
+      <path d={cone} fill="none" {...O} />
+      <circle cx={0} cy={-29.5} r={3.6} fill="#f2d48a" {...O} />
     </>
   );
 }
@@ -48,12 +48,11 @@ function PartyHat({ uid }: { uid: string }) {
 function GradCap() {
   return (
     <>
-      <path d="M-13 -1V-9.5H13V-1Q0 3 -13 -1Z" fill="#2f2c47" />
-      <path d="M0 -21L25 -12.5L0 -4L-25 -12.5Z" fill="#3d3960" stroke="#3d3960" strokeWidth={1.5} strokeLinejoin="round" />
-      <path d="M0 -21L25 -12.5L0 -4Z" fill="#000" opacity={0.15} />
-      <path d="M0 -12.5Q12 -12 17 -9.5V1" fill="none" stroke="#ffc800" strokeWidth={1.7} strokeLinecap="round" />
-      <path d="M15.2 0.5H18.8L19.6 6.5H14.4Z" fill="#ffc800" strokeLinejoin="round" stroke="#ffc800" strokeWidth={1} />
-      <circle cx={0} cy={-12.5} r={1.9} fill="#ffc800" />
+      <path d="M-13 -1V-9.5H13V-1Q0 3 -13 -1Z" fill="#3a3632" {...O} />
+      <path d="M0 -21L25 -12.5L0 -4L-25 -12.5Z" fill="#4a4540" {...O} />
+      <path d="M0 -12.5Q12 -12 17 -9.5V1" fill="none" stroke="#c29a1e" strokeWidth={1.6} strokeLinecap="round" />
+      <path d="M15.2 0.5H18.8L19.6 6.5H14.4Z" fill="#c29a1e" />
+      <circle cx={0} cy={-12.5} r={1.8} fill="#c29a1e" />
     </>
   );
 }
@@ -62,15 +61,14 @@ function Crown() {
   const d = "M-15 0V-13L-7.5 -6.5L0 -17L7.5 -6.5L15 -13V0Z";
   return (
     <>
-      <path d={d} fill="#ffc800" stroke="#ffc800" strokeWidth={2.4} strokeLinejoin="round" />
-      <path d="M0 -17L7.5 -6.5L15 -13V0H0Z" fill="#e0a800" opacity={0.55} />
-      <rect x={-16} y={-4.5} width={32} height={5.5} rx={2} fill="#e0a800" />
-      <circle cx={-15} cy={-14} r={2} fill="#ffe27a" />
-      <circle cx={0} cy={-18} r={2.2} fill="#ffe27a" />
-      <circle cx={15} cy={-14} r={2} fill="#ffe27a" />
-      <circle cx={-8} cy={-1.8} r={1.7} fill="#ff4b6e" />
-      <circle cx={0} cy={-1.8} r={1.9} fill="#1cb0f6" />
-      <circle cx={8} cy={-1.8} r={1.7} fill="#2bc46b" />
+      <path d={d} fill="#e2c46a" {...O} />
+      <path d="M-15 -4.5H15" fill="none" {...O} strokeWidth={1.2} />
+      <circle cx={-15} cy={-14} r={1.9} fill="#e2c46a" {...O} strokeWidth={1.2} />
+      <circle cx={0} cy={-18} r={2.1} fill="#e2c46a" {...O} strokeWidth={1.2} />
+      <circle cx={15} cy={-14} r={1.9} fill="#e2c46a" {...O} strokeWidth={1.2} />
+      <circle cx={-7.5} cy={-1.8} r={1.5} fill="#b4463b" />
+      <circle cx={0} cy={-1.8} r={1.7} fill="#2d4a7a" />
+      <circle cx={7.5} cy={-1.8} r={1.5} fill="#5f8a5a" />
     </>
   );
 }
@@ -78,11 +76,9 @@ function Crown() {
 function BowTie() {
   return (
     <>
-      <path d="M-1 0L-11.5 -6.5Q-14 0 -11.5 6.5Z" fill="#ff4b6e" stroke="#ff4b6e" strokeWidth={2.2} strokeLinejoin="round" />
-      <path d="M1 0L11.5 -6.5Q14 0 11.5 6.5Z" fill="#ff4b6e" stroke="#ff4b6e" strokeWidth={2.2} strokeLinejoin="round" />
-      <path d="M1 0L11.5 6.5Q13.6 2 13 -1Z" fill="#d8335a" opacity={0.7} />
-      <path d="M-1 0L-11.5 6.5Q-13.6 2 -13 -1Z" fill="#d8335a" opacity={0.7} />
-      <rect x={-3.4} y={-4} width={6.8} height={8} rx={2.4} fill="#d8335a" />
+      <path d="M-1.5 0L-11.5 -6.5Q-14 0 -11.5 6.5Z" fill="#b4463b" {...O} />
+      <path d="M1.5 0L11.5 -6.5Q14 0 11.5 6.5Z" fill="#b4463b" {...O} />
+      <rect x={-3.4} y={-4} width={6.8} height={8} rx={2.4} fill="#8e3229" {...O} />
     </>
   );
 }
@@ -90,19 +86,20 @@ function BowTie() {
 function EyeWear({ kind, art }: { kind: "goggles" | "round-glasses"; art: CharacterArt }) {
   const { eyeDx: dx, rx, ry } = art.face;
   const band = art.anchors.band;
-  const r = Math.max(rx, ry);
+  // Eyes are small dots now; lenses keep a readable minimum size.
+  const r = Math.max(rx, ry, 4.6);
   if (kind === "goggles") {
     const lr = r + 3;
     return (
       <>
         {[-1, 1].map((s) => (
-          <path key={s} d={`M${s * (dx + lr - 1)} 0L${s * (band + 0.5)} -1`} stroke="#3d6f8f" strokeWidth={6} />
+          <path key={s} d={`M${s * (dx + lr - 1)} 0L${s * (band + 0.5)} -1`} stroke={INK} strokeWidth={3} />
         ))}
-        <path d={`M${-dx + lr - 1} -1H${dx - lr + 1}`} stroke="#5d7488" strokeWidth={5} />
+        <path d={`M${-dx + lr - 1} -1H${dx - lr + 1}`} stroke={INK} strokeWidth={2.4} />
         {[-dx, dx].map((x) => (
           <g key={x}>
-            <circle cx={x} cy={0} r={lr} fill="#bfe9ff" opacity={0.38} />
-            <circle cx={x} cy={0} r={lr} fill="none" stroke="#5d7488" strokeWidth={3.2} />
+            <circle cx={x} cy={0} r={lr} fill="#cfe1ee" opacity={0.55} />
+            <circle cx={x} cy={0} r={lr} fill="none" stroke={INK} strokeWidth={2.2} />
             <path
               d={`M${x - lr * 0.55} ${-lr * 0.2}A${lr * 0.6} ${lr * 0.6} 0 0 1 ${x - lr * 0.1} ${-lr * 0.6}`}
               fill="none"

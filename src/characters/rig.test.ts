@@ -58,8 +58,8 @@ describe("rig", () => {
   });
 
   it("applies per-character overrides without touching the shared table", () => {
-    const bondNeutral = faceFor("neutral", ART.bond.overrides);
-    expect(bondNeutral.mouth).toBe("flat");
+    const strataNeutral = faceFor("neutral", ART.terra.overrides);
+    expect(strataNeutral.mouth).toBe("flat");
     expect(FACES.neutral.mouth).toBe("smile");
     expect(faceFor("happy")).toBe(FACES.happy);
   });

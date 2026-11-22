@@ -10,10 +10,11 @@ import { AnimatePresence, motion } from "motion/react";
 import type { Anchors, ArmSpec, FaceSpec } from "./art";
 import { armAngles, round2, type Extra, type FaceState, type MouthKind, type Pt, type Side } from "./rig";
 
-export const INK = "#2b2840";
-const MOUTH = "#4a1f3d";
-const TONGUE = "#ff7f9e";
-const EYE_WHITE = "#ffffff";
+/** The one line colour the whole cast (and the UI) is drawn with. */
+export const INK = "#1c1a17";
+const TONGUE = "#c9776a";
+/** Outline weight for bodies, in viewBox units. */
+export const LINE = 2;
 
 const FADE = { duration: 0.16, ease: [0.23, 1, 0.32, 1] as const };
 const FADE_OUT = { duration: 0.1, ease: [0.23, 1, 0.32, 1] as const };
@@ -84,7 +85,7 @@ export function Gloss({ cx, cy, rx, ry, r = -24, color = "#ffffff", opacity = 0.
 export function GroundShadow({ rx, className, delay }: { rx: number; className?: string; delay?: string }) {
   return (
     <g className={className} style={{ transformOrigin: "60px 112px", animationDelay: delay }}>
-      <ellipse cx={60} cy={112} rx={rx} ry={4.2} fill="#1d1b3a" opacity={0.13} />
+      <ellipse cx={60} cy={112} rx={rx} ry={3.4} fill={INK} opacity={0.1} />
     </g>
   );
 }
@@ -93,6 +94,11 @@ export function GroundShadow({ rx, className, delay }: { rx: number; className?:
 
 const mirror = (side: Side, v: number) => (side === "left" ? -v : v);
 
+/**
+ * A dot eye. Lids are skin-coloured shapes clipped to the dot, so the same
+ * numbers that drive a big cartoon eye still read on a small one: an upper
+ * lid flattens it (sleepy, sad), a lower arch squints it (smiling).
+ */
 function Eye({
   side,
   spec,
@@ -106,52 +112,48 @@ function Eye({
   clipId: string;
   blink: boolean;
 }) {
-  const { rx, ry, pupil: p, skin } = spec;
+  const { rx, ry, skin } = spec;
+  const ink = spec.ink ?? INK;
   const x = (spec.cx ?? 60) + mirror(side, spec.eyeDx);
   const open = face.eye === "open";
-  const lookX = round2(face.look[0] * rx * 0.4);
-  const lookY = round2(face.look[1] * ry * 0.4);
-  const lid = round2(face.upperLid * (2 * ry + 1.5));
+  const lookX = round2(face.look[0] * rx * 0.55);
+  const lookY = round2(face.look[1] * ry * 0.45);
+  const lid = round2(face.upperLid * (2 * ry + 1));
   const lower = round2(face.lowerLid * 2 * ry);
   const tilt = mirror(side, face.lidTilt);
-  const w = rx + 4;
-  const arch = ry * 0.5;
+  const w = rx + 3;
+  const arch = ry * 0.6;
   return (
     <g transform={`translate(${x} ${spec.eyeY})`}>
-      {/* a hair larger than the white, so lids cover its anti-aliased edge */}
-      <clipPath id={clipId}>
-        <ellipse rx={rx + 0.6} ry={ry + 0.6} />
-      </clipPath>
-      <g className="ch-t" style={{ transform: `scale(${face.eyeScale})`, opacity: open ? 1 : 0 }}>
-        <g className={blink && open ? "ch-blink" : undefined}>
-          <ellipse rx={rx} ry={ry} fill={EYE_WHITE} />
-          <g clipPath={`url(#${clipId})`}>
-            <g className="ch-t" style={{ transform: `translate(${lookX}px, ${lookY}px) scale(${face.pupilScale})` }}>
-              <circle r={p} fill={INK} />
-              <circle cx={-p * 0.34} cy={-p * 0.38} r={p * 0.36} fill="#fff" />
-              <circle cx={p * 0.4} cy={p * 0.34} r={p * 0.15} fill="#fff" />
-            </g>
-            {/* upper lid: rests just above the eye, slides down to close */}
-            <g className="ch-t" style={{ transform: `rotate(${tilt}deg) translateY(${lid}px)` }}>
-              <rect x={-w} y={-3 * ry - 1.5} width={w * 2} height={2 * ry} fill={skin} />
-              <line x1={-w} x2={w} y1={-ry - 1.5} y2={-ry - 1.5} stroke={INK} strokeWidth={1.8} strokeLinecap="round" />
-            </g>
-            {/* lower lid: an upward arch that squints the eye into a smile */}
-            <g className="ch-t" style={{ transform: `translateY(${-lower}px)` }}>
-              <path
-                d={`M${-w} ${ry + 1 + arch / 2}Q0 ${ry + 1 - arch / 2} ${w} ${ry + 1 + arch / 2}V${3 * ry}H${-w}Z`}
-                fill={skin}
-              />
+      <g className="ch-t" style={{ transform: `translate(${lookX}px, ${lookY}px)` }}>
+        <clipPath id={clipId}>
+          <ellipse rx={rx + 0.4} ry={ry + 0.4} />
+        </clipPath>
+        <g className="ch-t" style={{ transform: `scale(${face.eyeScale * (0.85 + 0.15 * face.pupilScale)})`, opacity: open ? 1 : 0 }}>
+          <g className={blink && open ? "ch-blink" : undefined}>
+            <ellipse rx={rx} ry={ry} fill={ink} />
+            <g clipPath={`url(#${clipId})`}>
+              {/* upper lid: rests above the dot, slides down to close */}
+              <g className="ch-t" style={{ transform: `rotate(${tilt}deg) translateY(${lid}px)` }}>
+                <rect x={-w} y={-3 * ry - 1} width={w * 2} height={2 * ry} fill={skin} />
+              </g>
+              {/* lower lid: an upward arch that squints the dot into a smile */}
+              <g className="ch-t" style={{ transform: `translateY(${-lower}px)` }}>
+                <path
+                  d={`M${-w} ${ry + 0.6 + arch / 2}Q0 ${ry + 0.6 - arch / 2} ${w} ${ry + 0.6 + arch / 2}V${3 * ry}H${-w}Z`}
+                  fill={skin}
+                />
+              </g>
             </g>
           </g>
         </g>
       </g>
       <g className="ch-t" style={{ opacity: open ? 0 : 1 }}>
         <path
-          d={`M${-rx * 0.9} ${ry * 0.3}Q0 ${-ry * 1.3} ${rx * 0.9} ${ry * 0.3}`}
+          d={`M${-rx * 1.3} ${ry * 0.35}Q0 ${-ry * 1.1} ${rx * 1.3} ${ry * 0.35}`}
           fill="none"
-          stroke={INK}
-          strokeWidth={3.4}
+          stroke={ink}
+          strokeWidth={2}
           strokeLinecap="round"
         />
       </g>
@@ -183,10 +185,10 @@ export function Brows({ spec, face }: { spec: FaceSpec; face: FaceState }) {
               style={{ transform: `translateY(${-b.lift}px) rotate(${mirror(side, b.tilt)}deg)`, opacity: face.browOpacity }}
             >
               <path
-                d={`M${-w / 2} 1Q0 -1.6 ${w / 2} 1`}
+                d={`M${-w / 2} 0.8Q0 -1.2 ${w / 2} 0.8`}
                 fill="none"
                 stroke={spec.brow.color}
-                strokeWidth={3.2}
+                strokeWidth={1.8}
                 strokeLinecap="round"
               />
             </g>
@@ -200,7 +202,7 @@ export function Brows({ spec, face }: { spec: FaceSpec; face: FaceState }) {
 export function Blush({ spec, face }: { spec: FaceSpec; face: FaceState }) {
   const { color, dx, dy, rx, ry, base = 0 } = spec.blush;
   const cx = spec.cx ?? 60;
-  const opacity = Math.max(base, face.blush) * 0.65;
+  const opacity = Math.max(base, face.blush) * 0.45;
   return (
     <g className="ch-t" style={{ opacity }}>
       <ellipse cx={cx - dx} cy={spec.eyeY + dy} rx={rx} ry={ry} fill={color} />
@@ -211,28 +213,28 @@ export function Blush({ spec, face }: { spec: FaceSpec; face: FaceState }) {
 
 /* ----------------------------------------------------------------- mouths */
 
-function openMouth(w: number, h: number, clipId: string) {
-  const d = `M${-w / 2} 0Q0 ${w * 0.12} ${w / 2} 0Q${w * 0.46} ${h} 0 ${h}Q${-w * 0.46} ${h} ${-w / 2} 0Z`;
+function openMouth(w: number, h: number, clipId: string, ink: string) {
+  const d = `M${-w / 2} 0Q0 ${w * 0.1} ${w / 2} 0Q${w * 0.44} ${h} 0 ${h}Q${-w * 0.44} ${h} ${-w / 2} 0Z`;
   return (
     <>
       <clipPath id={clipId}>
         <path d={d} />
       </clipPath>
-      <path d={d} fill={MOUTH} stroke={MOUTH} strokeWidth={2} strokeLinejoin="round" />
-      <ellipse cy={h * 0.98} rx={w * 0.27} ry={h * 0.42} fill={TONGUE} clipPath={`url(#${clipId})`} />
+      <path d={d} fill={ink} stroke={ink} strokeWidth={1.4} strokeLinejoin="round" />
+      <ellipse cy={h * 1.02} rx={w * 0.24} ry={h * 0.38} fill={TONGUE} clipPath={`url(#${clipId})`} />
     </>
   );
 }
 
-function MouthShape({ kind, w, clipId }: { kind: MouthKind; w: number; clipId: string }) {
-  const line = { fill: "none", stroke: INK, strokeWidth: 3, strokeLinecap: "round" as const };
+function MouthShape({ kind, w, clipId, ink }: { kind: MouthKind; w: number; clipId: string; ink: string }) {
+  const line = { fill: "none", stroke: ink, strokeWidth: 2, strokeLinecap: "round" as const };
   switch (kind) {
     case "smile":
       return <path d={`M${-w / 2} 0Q0 ${w * 0.42} ${w / 2} 0`} {...line} />;
     case "grin":
-      return openMouth(w, w * 0.6, clipId);
+      return openMouth(w * 0.9, w * 0.5, clipId, ink);
     case "laugh":
-      return openMouth(w * 1.12, w * 0.82, clipId);
+      return openMouth(w, w * 0.7, clipId, ink);
     case "frown":
       return <path d={`M${-w * 0.34} ${w * 0.16}Q0 ${-w * 0.2} ${w * 0.34} ${w * 0.16}`} {...line} />;
     case "hmm":
@@ -245,12 +247,11 @@ function MouthShape({ kind, w, clipId }: { kind: MouthKind; w: number; clipId: s
           <clipPath id={clipId}>
             <ellipse cy={w * 0.06} rx={w * 0.19} ry={w * 0.24} />
           </clipPath>
-          <ellipse cy={w * 0.06} rx={w * 0.19} ry={w * 0.24} fill={MOUTH} />
-          <ellipse cy={w * 0.3} rx={w * 0.14} ry={w * 0.1} fill={TONGUE} clipPath={`url(#${clipId})`} />
+          <ellipse cy={w * 0.06} rx={w * 0.16} ry={w * 0.2} fill={ink} />
         </>
       );
     case "yawn":
-      return <ellipse cy={w * 0.04} rx={w * 0.12} ry={w * 0.1} fill={MOUTH} />;
+      return <ellipse cy={w * 0.04} rx={w * 0.11} ry={w * 0.09} fill={ink} />;
     case "flat":
       return <path d={`M${-w * 0.26} 0L${w * 0.26} 0`} {...line} />;
     case "smirk":
@@ -269,7 +270,7 @@ export function Mouth({ spec, face, uid }: { spec: FaceSpec; face: FaceState; ui
           animate={{ opacity: 1, transition: FADE }}
           exit={{ opacity: 0, transition: FADE_OUT }}
         >
-          <MouthShape kind={face.mouth} w={w} clipId={`${uid}-m-${face.mouth}`} />
+          <MouthShape kind={face.mouth} w={w} clipId={`${uid}-m-${face.mouth}`} ink={spec.ink ?? INK} />
         </motion.g>
       </AnimatePresence>
     </g>
@@ -356,10 +357,10 @@ function sparklePath(s: number): string {
 function Sparkles({ top, animated }: { top: Pt; animated: boolean }) {
   const [tx, ty] = top;
   const items: [number, number, number, string][] = [
-    [tx - 38, ty + 10, 6, "#ffc800"],
-    [tx + 36, ty + 2, 5, "#ff86c8"],
-    [tx - 24, ty - 10, 3.6, "#8b7dff"],
-    [tx + 30, ty + 30, 3.4, "#38c6f4"],
+    [tx - 38, ty + 10, 6, "#c29a1e"],
+    [tx + 36, ty + 2, 5, "#c2453f"],
+    [tx - 24, ty - 10, 3.6, "#2d4a7a"],
+    [tx + 30, ty + 30, 3.4, "#5f8a5a"],
   ];
   return (
     <>
@@ -431,7 +432,7 @@ function Burst({ top, color }: { top: Pt; color: string }) {
               x2={x2}
               y2={y2}
               stroke={color}
-              strokeWidth={2.8}
+              strokeWidth={2}
               strokeLinecap="round"
             />
           );
@@ -455,8 +456,8 @@ function Zzz({ side, animated }: { side: Pt; animated: boolean }) {
           <path
             d={`M${-s / 2} ${-s / 2}H${s / 2}L${-s / 2} ${s / 2}H${s / 2}`}
             fill="none"
-            stroke="#8b7dff"
-            strokeWidth={Math.max(1.8, s * 0.3)}
+            stroke="#2d4a7a"
+            strokeWidth={Math.max(1.4, s * 0.22)}
             strokeLinecap="round"
             strokeLinejoin="round"
             className={animated ? "ch-z" : undefined}
